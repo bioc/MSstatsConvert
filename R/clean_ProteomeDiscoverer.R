@@ -73,7 +73,8 @@
 .cleanRawPDTMT = function(msstats_object, remove_shared = TRUE, 
                           remove_protein_groups = TRUE,
                           protein_id_column = "ProteinAccessions",
-                          intensity_columns_regexp = "Abundance") {
+                          intensity_columns_regexp = "Abundance",
+                          run_column = "SpectrumFile") {
   ProteinName = numProtein = QuanInfo = NULL
   
   pd_input = getInputFile(msstats_object, "input")
@@ -97,7 +98,6 @@
   }
   
   channels = .getChannelColumns(colnames(pd_input), intensity_columns_regexp)
-  run_column = ifelse(any(grepl("FileID", colnames(pd_input))), "FileID", "SpectrumFile")
   .validatePDTMTInputColumns(pd_input, protein_id_column, num_proteins, run_column, channels)
   
   pd_cols = intersect(c(protein_id_column, num_proteins, "AnnotatedSequence", 
