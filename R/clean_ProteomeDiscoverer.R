@@ -28,7 +28,8 @@
 #' @return data.table
 #' @keywords internal
 .cleanRawPDMSstats = function(msstats_object, quantification_column, 
-                              protein_id_column, sequence_column, remove_shared
+                              protein_id_column, sequence_column, remove_shared,
+                              run_column = "SpectrumFile"
 ) {
   XProteins = NULL
   
@@ -36,7 +37,6 @@
   protein_id_column = .standardizeColnames(protein_id_column)
   sequence_column = .standardizeColnames(sequence_column)
   quantification_column = .standardizeColnames(quantification_column)
-  run_column = ifelse(any(grepl("FileID", colnames(pd_input))), "FileID", "SpectrumFile")
   
   if (remove_shared & is.element("XProteins", colnames(pd_input))) {
     pd_input = pd_input[XProteins == "1", ]
