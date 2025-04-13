@@ -37,7 +37,7 @@
             all_possibilities, 
             unique(input[, annotation_cols, with = FALSE]),
             all.x = TRUE, by = unique(c("Run", measurement_col)))
-        intensities = intersect(c(intensity_ids, "Intensity", "isZero"), 
+        intensities = intersect(c(intensity_ids, "Intensity", "AnomalyScores", "isZero"), 
                                 colnames(input))
         input = merge(all_possibilities, 
                       unique(input[, intensities, with = FALSE]),

@@ -118,7 +118,7 @@
         "ProteinName", "PeptideSequence", "PeptideModifiedSequence", 
         "PrecursorCharge", "FragmentIon", "ProductCharge", "IsotopeLabelType",
         "Condition", "BioReplicate", "Run", "TechReplicate", "StandardType", 
-        "Fraction", "DetectionQValue", "Intensity"
+        "Fraction", "DetectionQValue", "Intensity", "AnomalyScores"
       )
     
     standard_columns_tmt = c("ProteinName", "PeptideSequence", "PrecursorCharge", 
