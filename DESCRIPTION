@@ -24,13 +24,15 @@ Imports:
     methods,
     checkmate,
     utils,
-    stringi
+    stringi,
+    Rcpp
 Suggests: 
     tinytest,
     covr,
     knitr,
-    rmarkdown,
-    arrow
+    arrow,
+    rmarkdown
+LinkingTo: Rcpp
 Collate: 
     'clean_ProteinProspector.R'
     'clean_Metamorpheus.R'
@@ -46,6 +48,7 @@ Collate:
     'clean_MaxQuant.R'
     'clean_DIAUmpire.R'
     'MSstatsConvert_core_functions.R'
+    'RcppExports.R'
     'converters_DIANNtoMSstatsFormat.R'
     'converters_DIAUmpiretoMSstatsFormat.R'
     'converters_FragPipetoMSstatsFormat.R'
@@ -60,6 +63,7 @@ Collate:
     'converters_SpectronauttoMSstatsFormat.R'
     'utils_MSstatsConvert.R'
     'utils_annotation.R'
+    'utils_anomly_score.R'
     'utils_balanced_design.R'
     'utils_checks.R'
     'utils_classes.R'

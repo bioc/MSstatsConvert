@@ -8,8 +8,8 @@ setOldClass("MSstatsValidated", S4Class = "MSstatsValidated")
 #' @importFrom methods new
 #' @return object of class MSstatsValidated that inherits from data.frame
 #' @keywords internal
-.MSstatsFormat = function(input) {
-    input = .selectMSstatsColumns(input)
+.MSstatsFormat = function(input, anomaly_metrics) {
+    input = .selectMSstatsColumns(input, anomaly_metrics)
     new("MSstatsValidated", as.data.frame(input))
 }
 

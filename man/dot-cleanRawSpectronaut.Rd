@@ -4,7 +4,12 @@
 \alias{.cleanRawSpectronaut}
 \title{Clean raw Spectronaut output.}
 \usage{
-.cleanRawSpectronaut(msstats_object, intensity)
+.cleanRawSpectronaut(
+  msstats_object,
+  intensity,
+  calculateAnomalyScores,
+  anomalyModelFeatures
+)
 }
 \arguments{
 \item{msstats_object}{an object of class \code{MSstatsSpectronautFiles}.}

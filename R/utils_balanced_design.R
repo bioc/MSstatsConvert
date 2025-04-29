@@ -4,7 +4,7 @@
 #' and marked as NA
 #' @return data.table
 #' @keywords internal
-.makeBalancedDesign = function(input, fill_missing) {
+.makeBalancedDesign = function(input, fill_missing, anomaly_metrics) {
     feature = NULL
     
     is_tmt = is.element("Channel", colnames(input))
@@ -14,9 +14,11 @@
                          c("ProteinName", "feature", "PeptideSequence", "PSM", 
                            "PrecursorCharge", "FragmentIon", "ProductCharge"))
         annotation_cols = intersect(colnames(input), 
-                                    c("Run", "Condition", "BioReplicate", "Channel",
-                                      "Mixture", "TechRepMixture", "TechReplicate"))
-        intensity_ids = intersect(c("feature", "Run", "Channel", "IsotopeLabelType",
+                                    c("Run", "Condition", "BioReplicate", 
+                                      "Channel", "Mixture", "TechRepMixture", 
+                                      "TechReplicate"))
+        intensity_ids = intersect(c("feature", "Run", 
+                                    "Channel", "IsotopeLabelType",
                                     "Fraction"), colnames(input))
         if (is_tmt) {
             group_col = "Run"
@@ -37,7 +39,8 @@
             all_possibilities, 
             unique(input[, annotation_cols, with = FALSE]),
             all.x = TRUE, by = unique(c("Run", measurement_col)))
-        intensities = intersect(c(intensity_ids, "Intensity", "AnomalyScores", "isZero"), 
+        intensities = intersect(c(intensity_ids, "Intensity",
+                                  "isZero", anomaly_metrics), 
                                 colnames(input))
         input = merge(all_possibilities, 
                       unique(input[, intensities, with = FALSE]),

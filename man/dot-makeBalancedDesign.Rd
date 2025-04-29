@@ -4,7 +4,7 @@
 \alias{.makeBalancedDesign}
 \title{Fill missing rows to create balanced design}
 \usage{
-.makeBalancedDesign(input, fill_missing)
+.makeBalancedDesign(input, fill_missing, anomaly_metrics)
 }
 \arguments{
 \item{input}{output of \code{MSstatsPreprocess}}

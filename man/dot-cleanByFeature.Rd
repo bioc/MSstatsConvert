@@ -4,7 +4,7 @@
 \alias{.cleanByFeature}
 \title{Perform by-feature operations.}
 \usage{
-.cleanByFeature(input, feature_columns, cleaning_control)
+.cleanByFeature(input, feature_columns, cleaning_control, anomaly_metrics)
 }
 \arguments{
 \item{input}{\code{data.table} preprocessed by one of the cleanRaw* functions.}

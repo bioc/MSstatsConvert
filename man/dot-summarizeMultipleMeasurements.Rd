@@ -4,7 +4,12 @@
 \alias{.summarizeMultipleMeasurements}
 \title{Summarize multiple measurements per feature in a single run}
 \usage{
-.summarizeMultipleMeasurements(input, aggregator, feature_columns)
+.summarizeMultipleMeasurements(
+  input,
+  aggregator,
+  feature_columns,
+  anomaly_metrics
+)
 }
 \arguments{
 \item{input}{\code{data.table} pre-processed by one of the .cleanRaw* functions.}
