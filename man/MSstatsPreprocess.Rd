@@ -17,6 +17,7 @@ MSstatsPreprocess(
   pattern_filtering = list(),
   columns_to_fill = list(),
   aggregate_isotopic = FALSE,
+  anomaly_metrics = c(),
   ...
 )
 }

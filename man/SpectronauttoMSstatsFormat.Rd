@@ -8,12 +8,18 @@ SpectronauttoMSstatsFormat(
   input,
   annotation = NULL,
   intensity = "PeakArea",
+  excludedFromQuantificationFilter = TRUE,
+  possibleInterferenceFilter = TRUE,
   filter_with_Qvalue = FALSE,
   qvalue_cutoff = 0.01,
   useUniquePeptide = TRUE,
   removeFewMeasurements = TRUE,
   removeProtein_with1Feature = FALSE,
   summaryforMultipleRows = max,
+  calculateAnomalyScores = FALSE,
+  anomalyModelFeatures = c(),
+  runOrder = NULL,
+  numberOfCores = 1,
   use_log_file = TRUE,
   append = FALSE,
   verbose = TRUE,
@@ -27,6 +33,10 @@ SpectronauttoMSstatsFormat(
 \item{annotation}{name of 'annotation.txt' data which includes Condition, BioReplicate, Run. If annotation is already complete in Spectronaut, use annotation=NULL (default). It will use the annotation information from input.}
 
 \item{intensity}{'PeakArea'(default) uses not normalized peak area. 'NormalizedPeakArea' uses peak area normalized by Spectronaut.}
+
+\item{excludedFromQuantificationFilter}{Remove rows with F.ExcludedFromQuantification=TRUE Default is TRUE.}
+
+\item{possibleInterferenceFilter}{Remove rows with F.PossibleInterference=TRUE Default is TRUE.}
 
 \item{filter_with_Qvalue}{FALSE(default) will not perform any filtering. TRUE will filter out the intensities that have greater than qvalue_cutoff in EG.Qvalue column. Those intensities will be replaced with zero and will be considered as censored missing values for imputation purpose.}
 

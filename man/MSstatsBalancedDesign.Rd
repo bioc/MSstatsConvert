@@ -10,7 +10,8 @@ MSstatsBalancedDesign(
   fill_incomplete = TRUE,
   handle_fractions = TRUE,
   fix_missing = NULL,
-  remove_few = TRUE
+  remove_few = TRUE,
+  anomaly_metrics = c()
 )
 }
 \arguments{

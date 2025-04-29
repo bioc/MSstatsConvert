@@ -363,7 +363,7 @@ MSstatsPreprocess = function(
                             summarize_multiple_psms = max),
     score_filtering = list(), exact_filtering = list(), 
     pattern_filtering = list(), columns_to_fill = list(), 
-    aggregate_isotopic = FALSE, ...
+    aggregate_isotopic = FALSE, anomaly_metrics = c(), ...
 ) {
     .checkMSstatsParams(input, annotation, feature_columns,
                         remove_shared_peptides,
@@ -380,8 +380,10 @@ MSstatsPreprocess = function(
     input = .handleIsotopicPeaks(input, aggregate_isotopic)
     input = .filterFewMeasurements(input, 1, FALSE)
     input = .handleSharedPeptides(input, remove_shared_peptides)
-    input = .cleanByFeature(input, feature_columns, feature_cleaning)
-    input = .handleSingleFeaturePerProtein(input, remove_single_feature_proteins)
+    input = .cleanByFeature(input, feature_columns, 
+                            feature_cleaning, anomaly_metrics)
+    input = .handleSingleFeaturePerProtein(input, 
+                                           remove_single_feature_proteins)
     input = .mergeAnnotation(input, annotation)
     .fillValues(input, columns_to_fill)
     .adjustIntensities(input)
@@ -422,7 +424,7 @@ MSstatsPreprocess = function(
 #' 
 MSstatsBalancedDesign = function(input, feature_columns, fill_incomplete = TRUE,
                                  handle_fractions = TRUE, fix_missing = NULL,
-                                 remove_few = TRUE) {
+                                 remove_few = TRUE, anomaly_metrics = c()) {
     feature = NULL
     
     input[, feature := do.call(".combine", .SD), .SDcols = feature_columns]
@@ -435,7 +437,7 @@ MSstatsBalancedDesign = function(input, feature_columns, fill_incomplete = TRUE,
         getOption("MSstatsLog")("INFO", msg_fractions)
         getOption("MSstatsMsg")("INFO", msg_fractions)
     } 
-    input = .makeBalancedDesign(input, fill_incomplete)
+    input = .makeBalancedDesign(input, fill_incomplete, anomaly_metrics)
     msg_balanced = paste("** Updated quantification data to make balanced design.",
                          "Missing values are marked by NA")
     getOption("MSstatsLog")("INFO", msg_balanced)
@@ -445,7 +447,7 @@ MSstatsBalancedDesign = function(input, feature_columns, fill_incomplete = TRUE,
                   with = FALSE]
     
     getOption("MSstatsLog")("INFO", "\n")
-    .MSstatsFormat(input)
+    .MSstatsFormat(input, anomaly_metrics)
 }
 
 
@@ -511,4 +513,41 @@ MSstatsMakeAnnotation = function(input, annotation, ...) {
     getOption("MSstatsLog")("INFO", msg)
     getOption("MSstatsMsg")("INFO", msg)
     annotation
+}
+
+#' Run Anomaly Model
+#' 
+#' @param input data.table preprocessed by the MSstatsBalancedDesign function
+#' @param quality_metrics
+#' @param run_order
+#' 
+#' @return data.table
+#' @export
+MSstatsAnomalyScores = function(input, quality_metrics, run_order,
+                                cores){
+    
+    input = .prepareSpectronautAnomalyInput(input, quality_metrics, run_order)
+    input$PSM = paste0(input$PeptideSequence, input$PrecursorCharge)
+    
+    input = .runAnomalyModel(input, 
+                             n_trees=100, 
+                             max_depth=12, 
+                             cores=cores,
+                             split_column="PSM",
+                             quality_metrics=c(
+                                 "EGApexRT",
+                                 "EGApexRT.mean_increase",
+                                 "FGShapeQualityScore(MS1)",
+                                 "FGShapeQualityScore(MS1).mean_decrease",
+                                 "FGShapeQualityScore(MS2)",
+                                 "FGShapeQualityScore(MS2).mean_decrease"))
+    
+    input = input[, c("Run", "ProteinName", "PeptideSequence", 
+                      "PrecursorCharge", "FragmentIon", 
+                      "ProductCharge", "IsotopeLabelType", 
+                      "Condition", "BioReplicate", 
+                      "Fraction", "Intensity", "AnomalyScores")]
+    
+    return(input)
+
 }

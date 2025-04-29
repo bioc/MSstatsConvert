@@ -48,7 +48,12 @@ MSstatsClean(msstats_object, ...)
 
 \S4method{MSstatsClean}{MSstatsSpectroMineFiles}(msstats_object)
 
-\S4method{MSstatsClean}{MSstatsSpectronautFiles}(msstats_object, intensity)
+\S4method{MSstatsClean}{MSstatsSpectronautFiles}(
+  msstats_object,
+  intensity,
+  calculateAnomalyScores,
+  anomalyModelFeatures
+)
 
 \S4method{MSstatsClean}{MSstatsPhilosopherFiles}(
   msstats_object,

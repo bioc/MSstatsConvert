@@ -4,7 +4,7 @@
 \alias{.MSstatsFormat}
 \title{Output format for further analysis by MSstats}
 \usage{
-.MSstatsFormat(input)
+.MSstatsFormat(input, anomaly_metrics)
 }
 \arguments{
 \item{input}{data.table}
