@@ -31,7 +31,8 @@ SpectronauttoMSstatsFormat = function(
         useUniquePeptide = TRUE, removeFewMeasurements=TRUE,
         removeProtein_with1Feature = FALSE, summaryforMultipleRows = max,
         calculateAnomalyScores=FALSE, anomalyModelFeatures=c(),
-        runOrder=NULL, numberOfCores=1, 
+        anomalyModelFeatureTemporal=c(),
+        runOrder=NULL, n_trees=100, max_depth=12, numberOfCores=1, 
         use_log_file = TRUE, append = FALSE, verbose = TRUE, 
         log_file_path = NULL, ...
 ) {
@@ -102,7 +103,8 @@ SpectronauttoMSstatsFormat = function(
     
     if (calculateAnomalyScores){
         input = MSstatsConvert::MSstatsAnomalyScores(
-            input, anomalyModelFeatures, runOrder, numberOfCores)
+            input, anomalyModelFeatures, anomalyModelFeatureTemporal,
+            runOrder, n_trees, max_depth, numberOfCores)
     }
     
     msg_final = paste("** Finished preprocessing. The dataset is ready",

@@ -523,36 +523,34 @@ MSstatsMakeAnnotation = function(input, annotation, ...) {
 #' 
 #' @return data.table
 #' @export
-MSstatsAnomalyScores = function(input, quality_metrics, run_order,
-                                cores){
+MSstatsAnomalyScores = function(input, quality_metrics, temporal_direction,
+                                run_order, n_trees, max_depth, cores){
     
     input = .prepareSpectronautAnomalyInput(input, quality_metrics, run_order)
     input$PSM = paste0(input$PeptideSequence, input$PrecursorCharge)
     
+    for (i in seq_along(quality_metrics)){
+        if (temporal_direction[i] != FALSE){
+            quality_metrics = c(quality_metrics, 
+                                paste0(quality_metrics[i], ".mean_", 
+                                       temporal_direction[i]))
+        }
+    }
+    
     input = .runAnomalyModel(input, 
-                             n_trees=100, 
-                             max_depth=12, 
+                             n_trees=n_trees, 
+                             max_depth=max_depth, 
                              cores=cores,
                              split_column="PSM",
-                             quality_metrics=c(
-                                 "EGApexRT",
-                                 "EGApexRT.mean_increase",
-                                 "FGShapeQualityScore(MS1)",
-                                 "FGShapeQualityScore(MS1).mean_decrease",
-                                 "FGShapeQualityScore(MS2)",
-                                 "FGShapeQualityScore(MS2).mean_decrease"))
+                             quality_metrics=quality_metrics)
     
-    input = input[, c("Run", "ProteinName", "PeptideSequence", 
-                      "PrecursorCharge", "FragmentIon", 
-                      "ProductCharge", "IsotopeLabelType", 
-                      "Condition", "BioReplicate", 
-                      "Fraction", "Intensity", "AnomalyScores",
-                      "EGApexRT",
-                      "EGApexRT.mean_increase",
-                      "FGShapeQualityScore(MS1)",
-                      "FGShapeQualityScore(MS1).mean_decrease",
-                      "FGShapeQualityScore(MS2)",
-                      "FGShapeQualityScore(MS2).mean_decrease")]
+    subset = c("Run", "ProteinName", "PeptideSequence", 
+               "PrecursorCharge", "FragmentIon", 
+               "ProductCharge", "IsotopeLabelType", 
+               "Condition", "BioReplicate", 
+               "Fraction", "Intensity", "AnomalyScores",
+               quality_metrics)
+    input = input[, ..subset]
     
     return(input)
 
