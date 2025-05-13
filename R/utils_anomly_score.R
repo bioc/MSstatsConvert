@@ -183,7 +183,8 @@
     
     parallel::clusterExport(cl, c(
         "calculate_anomaly_score",
-        "as.data.table"), 
+        "as.data.table",
+        "max_depth"), 
         envir = function_environment)
     
     model_results = parallel::parLapply(
@@ -191,6 +192,11 @@
         function(i){
             
             single_psm = input_data[get(split_column) == i, ..quality_metrics]
+            
+            if (max_depth == "auto"){
+                max_depth = round(log2(nrow(single_psm)))
+            }
+            
             forest = calculate_anomaly_score(
                 single_psm, n_trees, max_depth)
             forest$anomaly_score
