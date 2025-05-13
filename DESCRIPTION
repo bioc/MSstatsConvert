@@ -67,6 +67,7 @@ Collate:
     'utils_checks.R'
     'utils_classes.R'
     'utils_clean_features.R'
+    'utils_data_health.R'
     'utils_documentation.R'
     'utils_dt_operations.R'
     'utils_filtering.R'
