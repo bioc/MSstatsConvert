@@ -32,7 +32,7 @@ SpectronauttoMSstatsFormat = function(
         removeProtein_with1Feature = FALSE, summaryforMultipleRows = max,
         calculateAnomalyScores=FALSE, anomalyModelFeatures=c(),
         anomalyModelFeatureTemporal=c(),
-        runOrder=NULL, n_trees=100, max_depth=12, numberOfCores=1, 
+        runOrder=NULL, n_trees=100, max_depth="auto", numberOfCores=1, 
         use_log_file = TRUE, append = FALSE, verbose = TRUE, 
         log_file_path = NULL, ...
 ) {
