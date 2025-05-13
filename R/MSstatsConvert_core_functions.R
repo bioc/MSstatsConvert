@@ -546,8 +546,48 @@ MSstatsAnomalyScores = function(input, quality_metrics, run_order,
                       "PrecursorCharge", "FragmentIon", 
                       "ProductCharge", "IsotopeLabelType", 
                       "Condition", "BioReplicate", 
-                      "Fraction", "Intensity", "AnomalyScores")]
+                      "Fraction", "Intensity", "AnomalyScores",
+                      "EGApexRT",
+                      "EGApexRT.mean_increase",
+                      "FGShapeQualityScore(MS1)",
+                      "FGShapeQualityScore(MS1).mean_decrease",
+                      "FGShapeQualityScore(MS2)",
+                      "FGShapeQualityScore(MS2).mean_decrease")]
     
     return(input)
 
+}
+
+#' Takes as input
+#' 
+#' @param input MSstats input which is the output of a converter
+#' @return data.table
+#' @export
+CheckDataHealth = function(input,
+                           quality_metrics = c(
+                               "EGApexRT",
+                               "FGShapeQualityScore(MS1)",
+                               "FGShapeQualityScore(MS2)"
+                               )){
+    
+    input = as.data.table(input)
+    
+    # All intensity characteristics
+    missing_percent = .checkMissing(input)
+    zero_truncated = .checkIntensityDistribution(input)
+    
+    # Feature specific characteristics
+    input$Feature = paste(input$PeptideSequence,
+                          input$PrecursorCharge,
+                          input$FragmentIon,
+                          input$ProductCharge, sep="_")
+    feature_data = .checkFeatureSD(input)
+    outlier_info = .checkFeatureOutliers(input, feature_data)
+    feature_data = outlier_info[[1]]
+    outlier_summary = outlier_info[[2]]
+    feature_data = .checkFeatureCoverage(input, feature_data)
+    
+    skew_results = .checkAnomalySkew(input)
+    
+    return(list(feature_data, skew_results))
 }
