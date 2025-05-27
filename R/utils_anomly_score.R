@@ -117,9 +117,11 @@
     for(k in 2:length(quality_vector)) {
         # 5 is reference (3 sigma)
         if (mean_increase[k] > 5){
-            mean_increase[k] = max(0,(quality_vector[k] - d))
+            mean_increase[k] = max(0,(quality_vector[k] - d), na.rm = TRUE)
         } else {
-            mean_increase[k] = max(0,(quality_vector[k] - d + mean_increase[k-1])) # positive CuSum
+            mean_increase[k] = max(0,
+                                   (quality_vector[k] - d + mean_increase[k-1]),
+                                   na.rm = TRUE) # positive CuSum
         }
     }
     return(mean_increase)
@@ -136,9 +138,11 @@
     for(k in 2:length(quality_vector)) {
         # 5 is reference (3 sigma)
         if (mean_decrease[k]>5){
-            mean_decrease[k] <- max(0,(d - quality_vector[k] + 0))
+            mean_decrease[k] <- max(0,(d - quality_vector[k] + 0), na.rm = TRUE)
         } else {
-            mean_decrease[k] <- max(0,(d - quality_vector[k] + mean_decrease[k-1])) # negative CuSum
+            mean_decrease[k] <- max(0,
+                                    (d - quality_vector[k] + mean_decrease[k-1]),
+                                    na.rm = TRUE) # negative CuSum
         }
     }
     return(mean_decrease)
@@ -158,9 +162,12 @@
         v[k] = (sqrt(abs(quality_vector[k]))-0.822)/0.349 
         
         if (dispersion_increase[k] > 5){
-            dispersion_increase[k] = max(0,(v[k] - d))
+            dispersion_increase[k] = max(0,(v[k] - d),
+                                         na.rm = TRUE)
         } else {
-            dispersion_increase[k] = max(0,(v[k] - d + dispersion_increase[k-1])) # CuSum variance
+            dispersion_increase[k] = max(0, 
+                                         (v[k] - d + dispersion_increase[k-1]),
+                                         na.rm = TRUE) # CuSum variance
         }
     }
     return(dispersion_increase)

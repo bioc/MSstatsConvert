@@ -531,8 +531,8 @@ MSstatsAnomalyScores = function(input, quality_metrics, temporal_direction,
     
     for (i in seq_along(quality_metrics)){
         if (temporal_direction[i] != FALSE){
-            quality_metrics = c(quality_metrics, 
-                                paste0(quality_metrics[i], ".mean_", 
+            quality_metrics = c(quality_metrics,
+                                paste0(quality_metrics[i], ".",
                                        temporal_direction[i]))
         }
     }
