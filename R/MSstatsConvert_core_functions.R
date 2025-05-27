@@ -544,13 +544,15 @@ MSstatsAnomalyScores = function(input, quality_metrics, temporal_direction,
                              split_column="PSM",
                              quality_metrics=quality_metrics)
     
-    subset = c("Run", "ProteinName", "PeptideSequence", 
-               "PrecursorCharge", "FragmentIon", 
-               "ProductCharge", "IsotopeLabelType", 
-               "Condition", "BioReplicate", 
-               "Fraction", "Intensity", "AnomalyScores",
-               quality_metrics)
-    input = input[, ..subset]
+    subset_cols = c("Run", "ProteinName", "PeptideSequence", 
+                    "PrecursorCharge", "FragmentIon", 
+                    "ProductCharge", "IsotopeLabelType", 
+                    "Condition", "BioReplicate", 
+                    "Fraction", "Intensity", "AnomalyScores",
+                    quality_metrics)
+    
+    subset_cols = subset_cols[subset_cols %in% names(input)]
+    input = input[, ..subset_cols]
     
     return(input)
 
