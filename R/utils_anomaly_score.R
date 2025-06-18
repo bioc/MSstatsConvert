@@ -191,7 +191,10 @@
     parallel::clusterExport(cl, c(
         "calculate_anomaly_score",
         "as.data.table",
-        "max_depth"), 
+        "max_depth",
+        "n_trees",
+        "split_column",
+        "quality_metrics"), 
         envir = function_environment)
     
     model_results = parallel::parLapply(
