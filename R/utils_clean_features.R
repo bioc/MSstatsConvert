@@ -90,7 +90,7 @@
 #' @return `data.table`
 #' @keywords internal
 .summarizeMultipleMeasurements = function(input, aggregator, 
-                                          feature_columns, anomaly_metrics) {
+                                          feature_columns, anomaly_metrics = c()) {
     Intensity = isZero = NULL
     
     info = unique(input[, intersect(colnames(input), 
