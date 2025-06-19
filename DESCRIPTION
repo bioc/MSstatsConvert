@@ -63,7 +63,7 @@ Collate:
     'converters_SpectronauttoMSstatsFormat.R'
     'utils_MSstatsConvert.R'
     'utils_annotation.R'
-    'utils_anomly_score.R'
+    'utils_anomaly_score.R'
     'utils_balanced_design.R'
     'utils_checks.R'
     'utils_classes.R'
