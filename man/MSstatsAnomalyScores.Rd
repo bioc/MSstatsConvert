@@ -16,8 +16,6 @@ MSstatsAnomalyScores(
 }
 \arguments{
 \item{input}{data.table preprocessed by the MSstatsBalancedDesign function}
-
-\item{run_order}{}
 }
 \value{
 data.table
