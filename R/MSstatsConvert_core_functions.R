@@ -520,6 +520,7 @@ MSstatsMakeAnnotation = function(input, annotation, ...) {
 #' @param input data.table preprocessed by the MSstatsBalancedDesign function
 #' @param quality_metrics
 #' @param run_order
+#' @useDynLib MSstatsConvert, .registration = TRUE
 #' 
 #' @return data.table
 #' @export
