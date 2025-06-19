@@ -8,7 +8,7 @@
   input,
   aggregator,
   feature_columns,
-  anomaly_metrics
+  anomaly_metrics = c()
 )
 }
 \arguments{
