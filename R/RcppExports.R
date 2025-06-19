@@ -2,6 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 calculate_anomaly_score <- function(df, n_trees, max_depth) {
-    .Call(`_MSstatsConvert_calculate_anomaly_score`, df, n_trees, max_depth)
+    .Call('_MSstatsConvert_calculate_anomaly_score', PACKAGE = 'MSstatsConvert', df, n_trees, max_depth)
 }
 

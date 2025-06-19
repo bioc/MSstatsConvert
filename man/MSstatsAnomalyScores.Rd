@@ -4,7 +4,15 @@
 \alias{MSstatsAnomalyScores}
 \title{Run Anomaly Model}
 \usage{
-MSstatsAnomalyScores(input, quality_metrics, run_order, cores)
+MSstatsAnomalyScores(
+  input,
+  quality_metrics,
+  temporal_direction,
+  run_order,
+  n_trees,
+  max_depth,
+  cores
+)
 }
 \arguments{
 \item{input}{data.table preprocessed by the MSstatsBalancedDesign function}
