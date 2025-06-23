@@ -197,11 +197,21 @@
         "quality_metrics"), 
         envir = function_environment)
     
+    psm_list = unique(input_data[, get(split_column)])
+    num_psm = length(psm_list)
+    
+    cat(paste0("Number of PSMs to process: ", num_psm), 
+        sep = "\n", file = "MSstats_anomaly_model_progress.log")
+    
     model_results = parallel::parLapply(
-        cl, unique(input_data[, get(split_column)]), 
+        cl, seq_len(num_psm), 
         function(i){
-            
-            single_psm = input_data[get(split_column) == i, ..quality_metrics]
+            if (i %% 100 == 0) {
+                cat("Finished processing an additional 100 PSMs", 
+                    sep = "\n", file = "MSstats_anomaly_model_progress.log", append = TRUE)
+            }
+            single_psm = input_data[get(split_column) == psm_list[[i]], 
+                                    ..quality_metrics]
             
             if (max_depth == "auto"){
                 max_depth = round(log2(nrow(single_psm)))

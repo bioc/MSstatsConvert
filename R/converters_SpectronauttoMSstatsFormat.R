@@ -39,6 +39,8 @@ SpectronauttoMSstatsFormat = function(
     MSstatsConvert::MSstatsLogsSettings(use_log_file, append, verbose, 
                                         log_file_path)
     
+    anomalyModelFeatures = .standardizeColnames(anomalyModelFeatures)
+    
     input = MSstatsConvert::MSstatsImport(list(input = input), 
                                           "MSstats", "Spectronaut", ...)
 
