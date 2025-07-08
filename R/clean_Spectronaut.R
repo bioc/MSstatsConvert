@@ -10,7 +10,7 @@
   
   spec_input = getInputFile(msstats_object, "input")
   .validateSpectronautInput(spec_input)
-  spec_input[FFrgLossType != "noloss", paste0("F", intensity) := NA]
+  spec_input = spec_input[FFrgLossType == "noloss", ]
 
   f_charge_col = .findAvailable(c("FCharge", "FFrgZ"), colnames(spec_input))
   pg_qval_col = .findAvailable(c("PGQvalue"), colnames(spec_input))
