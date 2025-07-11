@@ -35,6 +35,8 @@ If "na_to_zero", missing values will be replaced by zeros.}
 
 \item{remove_few}{lgl, if TRUE, features with one or two measurements
 across runs will be removed.}
+
+\item{anomaly_metrics}{character vector of names of columns with quality metrics}
 }
 \value{
 data.frame of class \code{MSstatsValidated}

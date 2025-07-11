@@ -4,9 +4,17 @@
 #' @param annotation name of 'annotation.txt' data which includes Condition, BioReplicate, Run. If annotation is already complete in Spectronaut, use annotation=NULL (default). It will use the annotation information from input.
 #' @param intensity 'PeakArea'(default) uses not normalized peak area. 'NormalizedPeakArea' uses peak area normalized by Spectronaut.
 #' @param excludedFromQuantificationFilter Remove rows with F.ExcludedFromQuantification=TRUE Default is TRUE.
-#' @param possibleInterferenceFilter Remove rows with F.PossibleInterference=TRUE Default is TRUE.
 #' @param filter_with_Qvalue FALSE(default) will not perform any filtering. TRUE will filter out the intensities that have greater than qvalue_cutoff in EG.Qvalue column. Those intensities will be replaced with zero and will be considered as censored missing values for imputation purpose.
 #' @param qvalue_cutoff Cutoff for EG.Qvalue. default is 0.01.
+#' @param calculateAnomalyScores Default is FALSE. If TRUE, will run anomaly detection model and calculate anomaly scores for each feature. Used downstream to weigh measurements in differential analysis.
+#' @param anomalyModelFeatures character vector of quality metric column names to be used as features in the anomaly detection model. List must not be empty if calculateAnomalyScores=TRUE.
+#' @param anomalyModelFeatureTemporal character vector of temporal direction corresponding to columns passed to anomalyModelFeatures. Values must be one of: `mean_decrease`, `mean_incrase`, `dispersion_increase`, or NULL (to perform no temporal feature engineering). Default is empty vector. If calculateAnomalyScores=TRUE, vector must have as many values as anomalyModelFeatures (even if all NULL).
+#' @param removeMissingFeatures Remove features with missing values in more than this fraction of runs. Default is 0.5. Only used if calculateAnomalyScores=TRUE.
+#' @param anomalyModelFeatureCount Feature selection for anomaly model. Anomaly detection works on the precursor-level and can be much slower if all features used. We will by default filter to the top-100 highest intensity features. This can be adjusted as necessary. To turn feature-selection off, set this value to a high number (e.g. 10000). Only used if calculateAnomalyScores=TRUE.
+#' @param runOrder Temporal order of MS runs. Should be a two column data.table with columns `Run` and `Order`, where `Run` matches the run name output by Spectronaut and `Order` is an integer. Used to engineer the temporal features defined in anomalyModelFeatureTemporal.
+#' @param n_trees Number of trees to use in isolation forest when calculateAnomalyScores=TRUE. Default is 100.
+#' @param max_depth Max tree depth to use in isolation forest when calculateAnomalyScores=TRUE. Default is "auto" which calculates depth as log2(N) where N is the number of runs. Otherwise must be an integer.
+#' @param numberOfCores Number of cores for parallel processing anomaly detection model. When > 1, a logfile named 'MSstats_anomaly_model_progress.log' is created to track progress. Only works for Linux & Mac OS. Default is 1.
 #' @param ... additional parameters to `data.table::fread`.
 #' @inheritParams .sharedParametersAmongConverters
 #' 
@@ -26,12 +34,13 @@
 SpectronauttoMSstatsFormat = function(
         input, annotation = NULL, intensity = 'PeakArea', 
         excludedFromQuantificationFilter = TRUE,
-        possibleInterferenceFilter = TRUE,
         filter_with_Qvalue = FALSE, qvalue_cutoff = 0.01, 
         useUniquePeptide = TRUE, removeFewMeasurements=TRUE,
-        removeProtein_with1Feature = FALSE, summaryforMultipleRows = max,
+        removeProtein_with1Feature = FALSE,
+        summaryforMultipleRows = max,
         calculateAnomalyScores=FALSE, anomalyModelFeatures=c(),
-        anomalyModelFeatureTemporal=c(),
+        anomalyModelFeatureTemporal=c(), removeMissingFeatures=.5,
+        anomalyModelFeatureCount=100,
         runOrder=NULL, n_trees=100, max_depth="auto", numberOfCores=1, 
         use_log_file = TRUE, append = FALSE, verbose = TRUE, 
         log_file_path = NULL, ...
@@ -65,13 +74,6 @@ SpectronauttoMSstatsFormat = function(
                        fill_value = NA_real_, 
                        filter = filter_with_Qvalue, 
                        drop_column = TRUE)
-    # excluded_interference_filter = list(
-    #     col_name = "FPossibleInterference", 
-    #     filter_symbols = TRUE, 
-    #     behavior = "remove", 
-    #     fill_value = NA_real_, 
-    #     filter = TRUE, 
-    #     drop_column = TRUE)
     excluded_quant_filter = list(
         col_name = "FExcludedFromQuantification", 
         filter_symbols = TRUE, 
@@ -92,8 +94,7 @@ SpectronauttoMSstatsFormat = function(
                                 summarize_multiple_psms = summaryforMultipleRows),
         score_filtering = list(pgq = pq_filter, 
                                psm_q = qval_filter),
-        exact_filtering = list(#interference = excluded_interference_filter,
-                               excluded_quant = excluded_quant_filter),
+        exact_filtering = list(excluded_quant = excluded_quant_filter),
         columns_to_fill = list("IsotopeLabelType" = "L"),
         anomaly_metrics = anomalyModelFeatures)
     input[, Intensity := ifelse(Intensity == 0, NA, Intensity)]
@@ -106,7 +107,8 @@ SpectronauttoMSstatsFormat = function(
     if (calculateAnomalyScores){
         input = MSstatsConvert::MSstatsAnomalyScores(
             input, anomalyModelFeatures, anomalyModelFeatureTemporal,
-            runOrder, n_trees, max_depth, numberOfCores)
+            removeMissingFeatures, anomalyModelFeatureCount, runOrder, n_trees, 
+            max_depth, numberOfCores)
     }
     
     msg_final = paste("** Finished preprocessing. The dataset is ready",

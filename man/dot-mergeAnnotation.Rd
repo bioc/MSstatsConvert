@@ -9,7 +9,7 @@
 \arguments{
 \item{annotation}{data.table with annotation}
 
-\item{data.table}{preprocessed by one of the .cleanRaw* functions.}
+\item{data.table}{preprocessed by one of the .cleanRaw functions.}
 }
 \value{
 data.table

@@ -2,19 +2,16 @@
 % Please edit documentation in R/MSstatsConvert_core_functions.R
 \name{CheckDataHealth}
 \alias{CheckDataHealth}
-\title{Takes as input}
+\title{Takes as input the output of the SpectronauttoMSstatsFormat function and calculates various quality metrics to assess the health of the data. Requires Anomaly Detection model to be fit.}
 \usage{
-CheckDataHealth(
-  input,
-  quality_metrics = c("EGApexRT", "FGShapeQualityScore(MS1)", "FGShapeQualityScore(MS2)")
-)
+CheckDataHealth(input)
 }
 \arguments{
-\item{input}{MSstats input which is the output of a converter}
+\item{input}{MSstats input which is the output of Spectronaut converter}
 }
 \value{
-data.table
+list of two data.tables
 }
 \description{
-Takes as input
+Takes as input the output of the SpectronauttoMSstatsFormat function and calculates various quality metrics to assess the health of the data. Requires Anomaly Detection model to be fit.
 }

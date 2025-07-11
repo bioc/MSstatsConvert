@@ -112,6 +112,10 @@ will be treated as corresponding to intensities for different channels.}
 
 \item{intensity}{chr, specifies which column will be used for Intensity.}
 
+\item{calculateAnomalyScores}{logical, whether to calculate anomaly scores}
+
+\item{anomalyModelFeatures}{character vector, specifies which columns will be used for anomaly detection model. Can be NULL if calculateAnomalyScores=FALSE.}
+
 \item{peptide_id_col}{character name of a column that identifies peptides}
 
 \item{channels}{character vector of channel labels}

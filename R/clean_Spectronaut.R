@@ -1,6 +1,8 @@
 #' Clean raw Spectronaut output.
 #' @param msstats_object an object of class `MSstatsSpectronautFiles`.
 #' @param intensity chr, specifies which column will be used for Intensity.
+#' @param calculateAnomalyScores logical, whether to calculate anomaly scores
+#' @param anomalyModelFeatures character vector, specifies which columns will be used for anomaly detection model. Can be NULL if calculateAnomalyScores=FALSE.
 #' @return `data.table`
 #' @keywords internal
 .cleanRawSpectronaut = function(msstats_object, intensity,
