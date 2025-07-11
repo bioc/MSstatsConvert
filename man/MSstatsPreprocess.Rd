@@ -58,6 +58,8 @@ will be added to the output \code{data.frame}.}
 
 \item{aggregate_isotopic}{logical. If \code{TRUE}, isotopic peaks will by summed.}
 
+\item{anomaly_metrics}{character vector of names of columns with quality metrics. Default is missing and is not required if anomaly model not run.}
+
 \item{...}{additional parameters to \code{data.table::fread}.}
 }
 \value{

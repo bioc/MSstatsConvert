@@ -11,12 +11,12 @@
 
 \item{col_name}{chr, name of the column with peptide sequences.}
 
+\item{patterns}{chr, regular expression - matching peptides will be
+removed from the data.}
+
 \item{filter}{lgl, if TRUE, peptides will be actually filtered.}
 
 \item{drop}{lgl, if TRUE, the \code{column} will be dropped.}
-
-\item{pattern}{chr, regular expression - matching peptides will be
-removed from the data.}
 }
 \value{
 data.table

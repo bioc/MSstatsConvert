@@ -8,6 +8,8 @@ MSstatsAnomalyScores(
   input,
   quality_metrics,
   temporal_direction,
+  missing_run_count,
+  n_feat,
   run_order,
   n_trees,
   max_depth,
@@ -16,6 +18,22 @@ MSstatsAnomalyScores(
 }
 \arguments{
 \item{input}{data.table preprocessed by the MSstatsBalancedDesign function}
+
+\item{quality_metrics}{character vector of quality metrics to use in the model}
+
+\item{temporal_direction}{character vector of same length as quality_metrics indicating temporal feature to create.}
+
+\item{missing_run_count}{numeric, maximum allowed fraction of missing runs per feature.}
+
+\item{n_feat}{numeric, maximum number of features per protein to use in the model.}
+
+\item{run_order}{data.frame with two columns: Run and Order. Order should be numeric and indicate the order of runs.}
+
+\item{n_trees}{numeric, number of trees to use in the isolation forest model. Default is 100.}
+
+\item{max_depth}{numeric or "auto", maximum depth of each tree. Default is "auto" which sets depth to log2(N) where N is the number of runs.}
+
+\item{cores}{numeric, number of cores to use for parallel processing. Default is 1.}
 }
 \value{
 data.table

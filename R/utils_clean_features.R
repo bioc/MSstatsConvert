@@ -43,7 +43,7 @@
 #' @param remove_few logical, if TRUE, features that have less than three 
 #' measurements will be removed. If FALSE, only features with all missing runs
 #' will be removed.
-#' @param features_columns chr, vector of names of columns that define features. 
+#' @param feature_columns chr, vector of names of columns that define features. 
 #' @return data.table
 #' @keywords internal
 .filterFewMeasurements = function(input, min_intensity, remove_few,

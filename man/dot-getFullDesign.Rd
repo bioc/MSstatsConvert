@@ -15,7 +15,7 @@ of this column}
 
 \item{is_tmt}{if TRUE, data will be treated as coming from TMT experiment.}
 
-\item{`feature_column`}{name of the column that labels features}
+\item{`feature_col`}{name of the column that labels features}
 
 \item{`measurement_col`}{name of a column with measurement labels - Runs in
 label-free case, Channels in TMT case.}

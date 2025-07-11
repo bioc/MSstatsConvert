@@ -1,8 +1,10 @@
-# Convert data into anomaly 
+#' Prepare data for anomaly model, including feature engineering
+#' @noRd
 .prepareSpectronautAnomalyInput = function(input,
                                            quality_metrics,
                                            run_order,
-                                           n_feat=100){
+                                           n_feat=100,
+                                           missing_run_count=.5){
     input = as.data.table(input)
     
     input$Fragment = paste(input$PeptideSequence,
@@ -14,9 +16,8 @@
 
     # Remove fragments with more than 50% missing
     runs = length(unique(input$Run))
-    remove = input[is.na(Intensity),
-                        .(count = .N / runs),
-                        by = Fragment][count > 0.5, Fragment]
+    remove = input[is.na(Intensity), .(count = .N / runs), by = Fragment
+                   ][count > missing_run_count, Fragment]
     input = input[!(Fragment %in% remove)]
     
     # Select top N features
@@ -59,37 +60,7 @@
     return(input)
 }
 
-.isolationForest = function(input_data, quality_metrics, n_trees, 
-                            max_depth, cores=4){
-    
-    
-    function_environment = environment()
-    cl = parallel::makeCluster(cores)
-    
-    parallel::clusterExport(cl, c(
-        "train_isolation_forest_cpp",
-        "as.data.table"), 
-        envir = function_environment)
-    
-    model_results = parallel::parLapply(
-        cl, unique(input_data[, get(split_column)]), 
-        function(i){
-            
-            single_psm = input_data[get(split_column) == i, ..quality_metrics]
-            forest = train_isolation_forest_cpp(
-                single_psm, n_trees = n_trees, max_depth = max_depth)
-            forest$anomaly_score
-        }
-    )
-    
-    model_results = unlist(model_results)
-    input_data$anomaly_scores = model_results
-    
-    return(input_data)
-}
-
 #' Add moving window features given a quality metric vector
-#' 
 #' @noRd
 .add_features = function(quality_vector){
     
@@ -151,8 +122,6 @@
 #' Calculate dispersion increase
 #' @noRd
 .add_dispersion_increase = function(quality_vector){
-    
-    # TODO: Vectorize this
     dispersion_increase = numeric(length(quality_vector))
     v = numeric(length(quality_vector))
     v[1] = (sqrt(abs(quality_vector[1]))-0.822)/0.349
@@ -177,7 +146,7 @@
 #' @import parallel
 #' @import Rcpp
 #' 
-#' @export
+#' @noRd
 .runAnomalyModel = function(input_data, 
                             n_trees, 
                             max_depth, 

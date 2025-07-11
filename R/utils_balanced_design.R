@@ -63,7 +63,7 @@
 #' @param group_col name of column in `input`. Combination of values of 
 #' `feature_col` and `measurement_col` will be created within each unique value
 #' of this column
-#' @param `feature_column` name of the column that labels features
+#' @param `feature_col` name of the column that labels features
 #' @param `measurement_col` name of a column with measurement labels - Runs in
 #' label-free case, Channels in TMT case.
 #' @param is_tmt if TRUE, data will be treated as coming from TMT experiment.

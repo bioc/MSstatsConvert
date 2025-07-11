@@ -1,6 +1,7 @@
 #' Merge annotation with feature data
-#' @param data.table preprocessed by one of the .cleanRaw* functions.
+#' @param data.table preprocessed by one of the .cleanRaw functions.
 #' @param annotation data.table with annotation
+#'
 #' @return data.table
 #' @keywords internal 
 .mergeAnnotation = function(input, annotation) {

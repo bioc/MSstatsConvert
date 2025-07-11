@@ -15,6 +15,10 @@
 \item{msstats_object}{an object of class \code{MSstatsSpectronautFiles}.}
 
 \item{intensity}{chr, specifies which column will be used for Intensity.}
+
+\item{calculateAnomalyScores}{logical, whether to calculate anomaly scores}
+
+\item{anomalyModelFeatures}{character vector, specifies which columns will be used for anomaly detection model. Can be NULL if calculateAnomalyScores=FALSE.}
 }
 \value{
 \code{data.table}
