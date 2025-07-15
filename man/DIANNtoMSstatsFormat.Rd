@@ -67,7 +67,9 @@ If \code{append = TRUE}, has to be a valid path to a file.}
 
 \item{MBR}{True if analysis was done with match between runs}
 
-\item{quantificationColumn}{Use 'FragmentQuantCorrected'(default) column for quantified intensities. 'FragmentQuantRaw' can be used instead.}
+\item{quantificationColumn}{Use 'FragmentQuantCorrected'(default) column for quantified intensities.
+'FragmentQuantRaw' can be used instead.
+'auto' should be used for DIANN 2.0 where each fragment intensity is a separate column, e.g. Fr0Quantity.}
 
 \item{...}{additional parameters to \code{data.table::fread}.}
 }
@@ -78,7 +80,7 @@ data.frame in the MSstats required format.
 Import Diann files
 }
 \examples{
-# See https://github.com/vdemichev/DiaNN/discussions/1525 for workaround for DIANN 2.0
+# For DIANN 2.0, set quantificationColumn = 'auto'
 input_file_path = system.file("tinytest/raw_data/DIANN/diann_input.tsv", 
                                 package="MSstatsConvert")
 annotation_file_path = system.file("tinytest/raw_data/DIANN/annotation.csv", 

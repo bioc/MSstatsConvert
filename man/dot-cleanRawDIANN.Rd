@@ -15,7 +15,9 @@
 
 \item{MBR}{True if analysis was done with match between runs}
 
-\item{quantificationColumn}{Use 'FragmentQuantCorrected'(default) column for quantified intensities. 'FragmentQuantRaw' can be used instead.}
+\item{quantificationColumn}{Use 'FragmentQuantCorrected'(default) column for quantified intensities.
+'FragmentQuantRaw' can be used instead.
+'auto' should be used for DIANN 2.0 where each fragment intensity is a separate column, e.g. Fr0Quantity.}
 }
 \value{
 data.table

@@ -1,7 +1,9 @@
 #' Clean raw Diann files
 #' @param msstats_object an object of class `MSstatsDIANNFiles`.
 #' @param MBR True if analysis was done with match between runs
-#' @param quantificationColumn Use 'FragmentQuantCorrected'(default) column for quantified intensities. 'FragmentQuantRaw' can be used instead.
+#' @param quantificationColumn Use 'FragmentQuantCorrected'(default) column for quantified intensities. 
+#' 'FragmentQuantRaw' can be used instead. 
+#' 'auto' should be used for DIANN 2.0 where each fragment intensity is a separate column, e.g. Fr0Quantity.
 #' @return data.table
 #' @importFrom stats na.omit
 #' @keywords internal
@@ -10,6 +12,18 @@
   dn_input = getInputFile(msstats_object, "input")
   dn_input = data.table::as.data.table(dn_input)
   
+  # Auto-detect and collapse multiple fragment columns (DIANN 2.0 format)
+  if (quantificationColumn == "auto") {
+      fragment_columns <- grep("^Fr[0-9]+Quantity$", names(dn_input), value = TRUE)
+      if (length(fragment_columns) == 0) {
+          stop("No fragment quantification columns found. Please check your input.")
+      }
+      dn_input[, FragmentQuantCorrected := apply(.SD, 1, function(row) {
+          paste(as.character(row), collapse = ";")
+      }), .SDcols = fragment_columns]
+      quantificationColumn <- "FragmentQuantCorrected"
+  }
+
   if (!is.element("PrecursorMz", colnames(dn_input))) {
     dn_input[, PrecursorMz := NA]
   }
