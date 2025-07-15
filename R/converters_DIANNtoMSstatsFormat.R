@@ -42,6 +42,17 @@
 #' output = DIANNtoMSstatsFormat(input, annotation = annot, MBR = FALSE, 
 #'                                 use_log_file = FALSE)
 #' head(output)
+#' 
+#' # For DIANN 2.0, set quantificationColumn = 'auto'
+#' input_file_path_2_0 = system.file("tinytest/raw_data/DIANN/diann_input_2.0.csv", 
+#'                                 package="MSstatsConvert")
+#' annotation_file_path_2_0 = system.file("tinytest/raw_data/DIANN/annotation_diann_2.0.csv", 
+#'                                 package = "MSstatsConvert")
+#' input_2_0 = data.table::fread(input_file_path_2_0)
+#' annot_2_0 = data.table::fread(annotation_file_path_2_0)
+#' output_2_0 = DIANNtoMSstatsFormat(input_2_0, annotation = annot_2_0, MBR = FALSE, 
+#'                                 use_log_file = FALSE, quantificationColumn = 'auto')
+#' head(output_2_0)
 DIANNtoMSstatsFormat = function(input, annotation = NULL,
                                 global_qvalue_cutoff = 0.01,
                                 qvalue_cutoff = 0.01, 
