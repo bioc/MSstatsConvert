@@ -19,9 +19,9 @@ expect_true("BioReplicate" %in% colnames(output))
 expect_true("Fraction" %in% colnames(output))
 
 # Test DIANNtoMSstatsFormat DIANN 2.0 ------------------------
-input_file_path = system.file("tinytest/raw_data/DIANN/diann_input_2.0.csv", package="MSstatsConvert")
+input_file_path = system.file("tinytest/raw_data/DIANN/diann_2.0.parquet", package="MSstatsConvert")
 annotation_file_path = system.file("tinytest/raw_data/DIANN/annotation_diann_2.0.csv", package = "MSstatsConvert")
-input = data.table::fread(input_file_path)
+input = arrow::read_parquet(input_file_path)
 annot = data.table::fread(annotation_file_path)
 output = DIANNtoMSstatsFormat(input, annotation = annot, MBR = FALSE, use_log_file = FALSE, quantificationColumn = 'auto')
 expect_equal(ncol(output), 11)
