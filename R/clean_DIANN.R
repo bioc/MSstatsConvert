@@ -18,9 +18,8 @@
       if (length(fragment_columns) == 0) {
           stop("No fragment quantification columns found. Please check your input.")
       }
-      dn_input[, FragmentQuantCorrected := apply(.SD, 1, function(row) {
-          paste(as.character(row), collapse = ";")
-      }), .SDcols = fragment_columns]
+      dn_input[, FragmentQuantCorrected := do.call(paste, c(.SD, sep = ";")),
+        .SDcols = fragment_columns]
       quantificationColumn <- "FragmentQuantCorrected"
   }
 
