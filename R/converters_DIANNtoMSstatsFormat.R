@@ -20,7 +20,9 @@
 #' @param removeFewMeasurements should proteins with few measurements be removed
 #' @param removeOxidationMpeptides should peptides with oxidation be removed
 #' @param removeProtein_with1Feature should proteins with a single feature be removed
-#' @param quantificationColumn Use 'FragmentQuantCorrected'(default) column for quantified intensities. 'FragmentQuantRaw' can be used instead.
+#' @param quantificationColumn Use 'FragmentQuantCorrected'(default) column for quantified intensities for DIANN 1.8.x.
+#' Use 'FragmentQuantRaw' for quantified intensities for DIANN 1.9.x. 
+#' Use 'auto' for quantified intensities for DIANN 2.x where each fragment intensity is a separate column, e.g. Fr0Quantity.
 #' @param ... additional parameters to `data.table::fread`.
 #'  
 #' @return data.frame in the MSstats required format.
@@ -30,7 +32,6 @@
 #' @export
 #' 
 #' @examples 
-#' # See https://github.com/vdemichev/DiaNN/discussions/1525 for workaround for DIANN 2.0
 #' input_file_path = system.file("tinytest/raw_data/DIANN/diann_input.tsv", 
 #'                                 package="MSstatsConvert")
 #' annotation_file_path = system.file("tinytest/raw_data/DIANN/annotation.csv", 
@@ -40,6 +41,17 @@
 #' output = DIANNtoMSstatsFormat(input, annotation = annot, MBR = FALSE, 
 #'                                 use_log_file = FALSE)
 #' head(output)
+#' 
+#' # For DIANN 2.0, set quantificationColumn = 'auto'
+#' input_file_path_2_0 = system.file("tinytest/raw_data/DIANN/diann_2.0.parquet", 
+#'                                 package="MSstatsConvert")
+#' annotation_file_path_2_0 = system.file("tinytest/raw_data/DIANN/annotation_diann_2.0.csv", 
+#'                                 package = "MSstatsConvert")
+#' input_2_0 = arrow::read_parquet(input_file_path_2_0)
+#' annot_2_0 = data.table::fread(annotation_file_path_2_0)
+#' output_2_0 = DIANNtoMSstatsFormat(input_2_0, annotation = annot_2_0, MBR = FALSE, 
+#'                                 use_log_file = FALSE, quantificationColumn = 'auto')
+#' head(output_2_0)
 DIANNtoMSstatsFormat = function(input, annotation = NULL,
                                 global_qvalue_cutoff = 0.01,
                                 qvalue_cutoff = 0.01, 
