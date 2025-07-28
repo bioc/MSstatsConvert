@@ -29,7 +29,8 @@ Suggests:
     tinytest,
     covr,
     knitr,
-    rmarkdown
+    rmarkdown,
+    arrow
 Collate: 
     'clean_ProteinProspector.R'
     'clean_Metamorpheus.R'
