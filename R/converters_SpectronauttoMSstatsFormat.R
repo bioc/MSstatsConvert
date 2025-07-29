@@ -8,7 +8,7 @@
 #' @param qvalue_cutoff Cutoff for EG.Qvalue. default is 0.01.
 #' @param calculateAnomalyScores Default is FALSE. If TRUE, will run anomaly detection model and calculate anomaly scores for each feature. Used downstream to weigh measurements in differential analysis.
 #' @param anomalyModelFeatures character vector of quality metric column names to be used as features in the anomaly detection model. List must not be empty if calculateAnomalyScores=TRUE.
-#' @param anomalyModelFeatureTemporal character vector of temporal direction corresponding to columns passed to anomalyModelFeatures. Values must be one of: `mean_decrease`, `mean_incrase`, `dispersion_increase`, or NULL (to perform no temporal feature engineering). Default is empty vector. If calculateAnomalyScores=TRUE, vector must have as many values as anomalyModelFeatures (even if all NULL).
+#' @param anomalyModelFeatureTemporal character vector of temporal direction corresponding to columns passed to anomalyModelFeatures. Values must be one of: `mean_decrease`, `mean_increase`, `dispersion_increase`, or NULL (to perform no temporal feature engineering). Default is empty vector. If calculateAnomalyScores=TRUE, vector must have as many values as anomalyModelFeatures (even if all NULL).
 #' @param removeMissingFeatures Remove features with missing values in more than this fraction of runs. Default is 0.5. Only used if calculateAnomalyScores=TRUE.
 #' @param anomalyModelFeatureCount Feature selection for anomaly model. Anomaly detection works on the precursor-level and can be much slower if all features used. We will by default filter to the top-100 highest intensity features. This can be adjusted as necessary. To turn feature-selection off, set this value to a high number (e.g. 10000). Only used if calculateAnomalyScores=TRUE.
 #' @param runOrder Temporal order of MS runs. Should be a two column data.table with columns `Run` and `Order`, where `Run` matches the run name output by Spectronaut and `Order` is an integer. Used to engineer the temporal features defined in anomalyModelFeatureTemporal.
@@ -45,6 +45,34 @@ SpectronauttoMSstatsFormat = function(
         use_log_file = TRUE, append = FALSE, verbose = TRUE, 
         log_file_path = NULL, ...
 ) {
+    .validateMSstatsConverterParameters(
+        input = input, 
+        annotation = annotation, 
+        intensity = intensity, 
+        excludedFromQuantificationFilter = excludedFromQuantificationFilter,
+        filter_with_Qvalue = filter_with_Qvalue, 
+        qvalue_cutoff = qvalue_cutoff, 
+        useUniquePeptide = useUniquePeptide, 
+        removeFewMeasurements = removeFewMeasurements,
+        removeProtein_with1Feature = removeProtein_with1Feature, 
+        summaryforMultipleRows = summaryforMultipleRows, 
+        calculateAnomalyScores = calculateAnomalyScores,
+        anomalyModelFeatures = anomalyModelFeatures, 
+        anomalyModelFeatureTemporal = anomalyModelFeatureTemporal, 
+        removeMissingFeatures = removeMissingFeatures,
+        anomalyModelFeatureCount = anomalyModelFeatureCount, 
+        runOrder = runOrder, 
+        n_trees = n_trees, 
+        max_depth = max_depth, 
+        numberOfCores = numberOfCores,
+        use_log_file = use_log_file, 
+        append = append, 
+        verbose = verbose, 
+        log_file_path = log_file_path,
+        converter_name = "Spectronaut",
+        ...
+    )
+    
     MSstatsConvert::MSstatsLogsSettings(use_log_file, append, verbose, 
                                         log_file_path)
     

@@ -3,10 +3,12 @@
 #' @param feature_columns character vector of names of columns that define features.
 #' @param cleaning_control named list of two or three elements. 
 #' See the documentation for `MSstatsImport` for details.
+#' @param anomaly_metrics character vector of quality metric column names to be 
+#' used as features in an anomaly detection model.
 #' @return `data.table`
 #' @keywords internal 
 .cleanByFeature = function(input, feature_columns, 
-                           cleaning_control, anomaly_metrics) {
+                           cleaning_control, anomaly_metrics = c()) {
     if (is.element("Channel", colnames(input))) {
         input = .filterFewMeasurements(
             input, 0, 
@@ -86,7 +88,9 @@
 #' Summarize multiple measurements per feature in a single run
 #' @param input `data.table` pre-processed by one of the .cleanRaw* functions.
 #' @param aggregator function that will be used to aggregate duplicated values.
-#' @param feature_columns chr, vector of names of columns that define features. 
+#' @param feature_columns chr, vector of names of columns that define features.
+#' @param anomaly_metrics character vector of quality metric column names 
+#' to be used as features in an anomaly detection model.
 #' @return `data.table`
 #' @keywords internal
 .summarizeMultipleMeasurements = function(input, aggregator, 

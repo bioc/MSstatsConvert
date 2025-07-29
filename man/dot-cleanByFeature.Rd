@@ -4,7 +4,12 @@
 \alias{.cleanByFeature}
 \title{Perform by-feature operations.}
 \usage{
-.cleanByFeature(input, feature_columns, cleaning_control, anomaly_metrics)
+.cleanByFeature(
+  input,
+  feature_columns,
+  cleaning_control,
+  anomaly_metrics = c()
+)
 }
 \arguments{
 \item{input}{\code{data.table} preprocessed by one of the cleanRaw* functions.}
@@ -13,6 +18,9 @@
 
 \item{cleaning_control}{named list of two or three elements.
 See the documentation for \code{MSstatsImport} for details.}
+
+\item{anomaly_metrics}{character vector of quality metric column names to be
+used as features in an anomaly detection model.}
 }
 \value{
 \code{data.table}

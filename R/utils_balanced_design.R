@@ -1,10 +1,12 @@
 #' Fill missing rows to create balanced design
 #' @param input output of `MSstatsPreprocess`
 #' @param fill_missing if TRUE, missing Intensities values will be added to data 
+#' @param anomaly_metrics character vector of quality metric column names to be 
+#' used as features in an anomaly detection model.
 #' and marked as NA
 #' @return data.table
 #' @keywords internal
-.makeBalancedDesign = function(input, fill_missing, anomaly_metrics) {
+.makeBalancedDesign = function(input, fill_missing, anomaly_metrics = c()) {
     feature = NULL
     
     is_tmt = is.element("Channel", colnames(input))
