@@ -30,6 +30,7 @@ Suggests:
     tinytest,
     covr,
     knitr,
+    arrow,
     rmarkdown
 LinkingTo: Rcpp
 Collate: 

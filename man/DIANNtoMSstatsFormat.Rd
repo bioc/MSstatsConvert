@@ -24,7 +24,8 @@ DIANNtoMSstatsFormat(
 )
 }
 \arguments{
-\item{input}{name of MSstats input report from Diann, which includes feature-level data.}
+\item{input}{name of MSstats input report from Diann, which includes fragment-level data.
+Output fragment data with --export-quant flag in DIA-NN 2.0}
 
 \item{annotation}{name of 'annotation.txt' data which includes Condition, BioReplicate, Run.}
 
@@ -66,7 +67,9 @@ If \code{append = TRUE}, has to be a valid path to a file.}
 
 \item{MBR}{True if analysis was done with match between runs}
 
-\item{quantificationColumn}{Use 'FragmentQuantCorrected'(default) column for quantified intensities. 'FragmentQuantRaw' can be used instead.}
+\item{quantificationColumn}{Use 'FragmentQuantCorrected'(default) column for quantified intensities for DIANN 1.8.x.
+Use 'FragmentQuantRaw' for quantified intensities for DIANN 1.9.x.
+Use 'auto' for quantified intensities for DIANN 2.x where each fragment intensity is a separate column, e.g. Fr0Quantity.}
 
 \item{...}{additional parameters to \code{data.table::fread}.}
 }
@@ -86,6 +89,17 @@ annot = data.table::fread(annotation_file_path)
 output = DIANNtoMSstatsFormat(input, annotation = annot, MBR = FALSE, 
                                 use_log_file = FALSE)
 head(output)
+
+# For DIANN 2.0, set quantificationColumn = 'auto'
+input_file_path_2_0 = system.file("tinytest/raw_data/DIANN/diann_2.0.parquet", 
+                                package="MSstatsConvert")
+annotation_file_path_2_0 = system.file("tinytest/raw_data/DIANN/annotation_diann_2.0.csv", 
+                                package = "MSstatsConvert")
+input_2_0 = arrow::read_parquet(input_file_path_2_0)
+annot_2_0 = data.table::fread(annotation_file_path_2_0)
+output_2_0 = DIANNtoMSstatsFormat(input_2_0, annotation = annot_2_0, MBR = FALSE, 
+                                use_log_file = FALSE, quantificationColumn = 'auto')
+head(output_2_0)
 }
 \author{
 Elijah Willie
