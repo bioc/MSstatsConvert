@@ -6,5 +6,3 @@ inst/doc
 *.Rproj
 *.DS_Store
 *.log
-inst/tinytest/raw_data/Spectronaut/spectronaut_quality_input.csv
-inst/tinytest/raw_data/Spectronaut/annotation.csv

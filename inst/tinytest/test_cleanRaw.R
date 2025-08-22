@@ -202,7 +202,12 @@ sn_cleaned = MSstatsConvert::MSstatsClean(spectronaut_import,
 expect_equal(ncol(sn_cleaned), 12)
 expect_true(nrow(sn_cleaned) > 0)
 
-spectronaut_input_2 = data.table::fread("./raw_data/Spectronaut/spectronaut_quality_input.csv")
+# Test new peak quality columns
+spectronaut_input_2 = spectronaut_input
+spectronaut_input_2$`FG.ShapeQualityScore (MS2)` = 1
+spectronaut_input_2$`FG.ShapeQualityScore (MS1)` = 1
+spectronaut_input_2$`EG.ApexRT` = 1
+spectronaut_input_2$`F.PossibleInterference` = TRUE
 spectronaut_import_2 = MSstatsConvert::MSstatsImport(list(input = spectronaut_input_2), 
                                                    "MSstats", "Spectronaut")
 sn_cleaned_2 = MSstatsConvert::MSstatsClean(spectronaut_import_2,

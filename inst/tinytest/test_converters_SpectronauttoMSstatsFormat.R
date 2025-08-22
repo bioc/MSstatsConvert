@@ -57,19 +57,21 @@ expect_error(
 
 
 # Test SpectronauttoMSstatsFormat Quality Metrics ---------------------------
-spectronaut_raw = system.file("tinytest/raw_data/Spectronaut/spectronaut_quality_input.csv",
+spectronaut_raw = system.file("tinytest/raw_data/Spectronaut/spectronaut_input.csv",
                               package = "MSstatsConvert")
 spectronaut_raw = data.table::fread(spectronaut_raw)
-annotation = system.file("tinytest/raw_data/Spectronaut/annotation.csv",
-                         package = "MSstatsConvert")
-annotation = data.table::fread(annotation)
-temporal = annotation
+spectronaut_raw$`FG.ShapeQualityScore (MS2)` = 1
+spectronaut_raw$`FG.ShapeQualityScore (MS1)` = 1
+spectronaut_raw$`EG.ApexRT` = 1
+spectronaut_raw$`F.PossibleInterference` = TRUE
+temporal = spectronaut_raw[, .(R.Replicate, R.Condition), by = R.FileName]
+temporal = unique(temporal)
+data.table::setnames(temporal, "R.FileName", "Run")
 temporal$Order = seq(1:nrow(temporal))
 temporal = temporal[, c("Run", "Order")]
 
 msstats_format = SpectronauttoMSstatsFormat(
     spectronaut_raw,
-    annotation = annotation,
     calculateAnomalyScores = TRUE,
     anomalyModelFeatures = c("FG.ShapeQualityScore (MS2)",
                              "FG.ShapeQualityScore (MS1)",
@@ -283,24 +285,6 @@ expect_error(SpectronauttoMSstatsFormat(
     n_trees = 100,
     max_depth = "auto"
 ))
-
-# anomalyModelFeatureTemporal contains duplicate feature temporal
-# expect_error(SpectronauttoMSstatsFormat(
-#     spectronaut_raw,
-#     annotation = annotation,
-#     calculateAnomalyScores = TRUE,
-#     anomalyModelFeatures =c("FG.ShapeQualityScore (MS2)",
-#                             "FG.ShapeQualityScore (MS1)",
-#                             "EG.ApexRT"),
-#     anomalyModelFeatureTemporal = c("mean_increase",
-#                                     "mean_increase",
-#                                     "dispersion_increase"),
-#     removeMissingFeatures = 0.5,
-#     anomalyModelFeatureCount = 100,
-#     runOrder = temporal,
-#     n_trees = 100,
-#     max_depth = "auto"
-# ))
 
 # anomalyModelFeatureTemporal is empty
 expect_error(SpectronauttoMSstatsFormat(

@@ -197,20 +197,14 @@
             }
         }
         
-        # Validate anomaly model parameters using existing function (if available)
-        if (exists(".validateParameters")) {
-            .validateParameters(n_trees, max_depth, anomalyModelFeatureCount, removeMissingFeatures)
+        checkmate::assertInt(n_trees, lower = 1)
+        if (is.character(max_depth)) {
+            checkmate::assertChoice(max_depth, choices = "auto")
         } else {
-            # Fallback validation if .validateParameters doesn't exist
-            checkmate::assertInt(n_trees, lower = 1)
-            if (is.character(max_depth)) {
-                checkmate::assertChoice(max_depth, choices = "auto")
-            } else {
-                checkmate::assertInt(max_depth, lower = 1)
-            }
-            checkmate::assertInt(anomalyModelFeatureCount, lower = 1)
-            checkmate::assertNumber(removeMissingFeatures, lower = 0, upper = 1)
+            checkmate::assertInt(max_depth, lower = 1)
         }
+        checkmate::assertInt(anomalyModelFeatureCount, lower = 1)
+        checkmate::assertNumber(removeMissingFeatures, lower = 0, upper = 1)
         
         if (!is.null(runOrder)) {
             if (!is.data.frame(runOrder) && !data.table::is.data.table(runOrder)) {
