@@ -193,7 +193,8 @@
     )
     
     model_results = unlist(model_results)
-    input_data$AnomalyScores = model_results
+    # Clip anomaly scores to stop them from exploding
+    input_data$AnomalyScores = pmax(model_results, .001)
     
     return(input_data)
 }
