@@ -2,91 +2,45 @@
 % Please edit documentation in R/utils_checks.R
 \name{.validateMSstatsConverterParameters}
 \alias{.validateMSstatsConverterParameters}
-\title{Generic parameter validation for all MSstats converters}
+\title{Generic parameter validation for all MSstats converters using configuration object}
 \usage{
-.validateMSstatsConverterParameters(
-  input,
-  annotation = NULL,
-  intensity = NULL,
-  excludedFromQuantificationFilter = NULL,
-  filter_with_Qvalue = FALSE,
-  qvalue_cutoff = 0.01,
-  useUniquePeptide = TRUE,
-  removeFewMeasurements = TRUE,
-  removeProtein_with1Feature = FALSE,
-  summaryforMultipleRows = max,
-  calculateAnomalyScores = FALSE,
-  anomalyModelFeatures = c(),
-  anomalyModelFeatureTemporal = c(),
-  removeMissingFeatures = 0.5,
-  anomalyModelFeatureCount = 100,
-  runOrder = NULL,
-  n_trees = 100,
-  max_depth = "auto",
-  numberOfCores = 1,
-  use_log_file = TRUE,
-  append = FALSE,
-  verbose = TRUE,
-  log_file_path = NULL,
-  converter_name = "MSstats converter",
-  ...
-)
+.validateMSstatsConverterParameters(config)
 }
 \arguments{
-\item{input}{input data - required for all converters}
-
-\item{annotation}{annotation data - required for all converters}
-
-\item{intensity}{intensity type - common parameter}
-
-\item{excludedFromQuantificationFilter}{filter setting - converter specific}
-
-\item{filter_with_Qvalue}{Q-value filter setting - common parameter}
-
-\item{qvalue_cutoff}{Q-value cutoff - common parameter}
-
-\item{useUniquePeptide}{unique peptide setting - common parameter}
-
-\item{removeFewMeasurements}{remove few measurements setting - common parameter}
-
-\item{removeProtein_with1Feature}{remove single feature proteins setting - common parameter}
-
-\item{summaryforMultipleRows}{aggregation function - common parameter}
-
-\item{calculateAnomalyScores}{anomaly detection setting - converter specific}
-
-\item{anomalyModelFeatures}{anomaly model features - converter specific}
-
-\item{anomalyModelFeatureTemporal}{temporal features - converter specific}
-
-\item{removeMissingFeatures}{missing feature threshold - converter specific}
-
-\item{anomalyModelFeatureCount}{feature count for anomaly model - converter specific}
-
-\item{runOrder}{run order data - converter specific}
-
-\item{n_trees}{number of trees - converter specific}
-
-\item{max_depth}{max tree depth - converter specific}
-
-\item{numberOfCores}{number of cores - common parameter}
-
-\item{use_log_file}{logging setting - common parameter}
-
-\item{append}{append setting - common parameter}
-
-\item{verbose}{verbose setting - common parameter}
-
-\item{log_file_path}{log file path - common parameter}
-
-\item{converter_name}{name of the converter for error messages}
-
-\item{...}{additional converter-specific parameters}
+\item{config}{A list containing all converter parameters. See details for required structure.}
 }
 \value{
 NULL (throws error if validation fails)
 }
 \description{
-Generic parameter validation for all MSstats converters
+Generic parameter validation for all MSstats converters using configuration object
+}
+\details{
+The config list should contain the input and optionally other parameters:
+\itemize{
+\item input: input data (required)
+\item annotation: annotation data (optional)
+\item intensity: intensity type (optional)
+\item filter_with_Qvalue: Q-value filter setting (default: FALSE)
+\item qvalue_cutoff: Q-value cutoff (default: 0.01)
+\item useUniquePeptide: unique peptide setting (default: TRUE)
+\item removeFewMeasurements: remove few measurements setting (default: TRUE)
+\item removeProtein_with1Feature: remove single feature proteins setting (default: FALSE)
+\item summaryforMultipleRows: aggregation function (default: max)
+\item calculateAnomalyScores: anomaly detection setting (default: FALSE)
+\item anomalyModelFeatures: anomaly model features (default: c())
+\item anomalyModelFeatureTemporal: temporal features (default: c())
+\item removeMissingFeatures: missing feature threshold (default: 0.5)
+\item anomalyModelFeatureCount: feature count for anomaly model (default: 100)
+\item runOrder: run order data (default: NULL)
+\item n_trees: number of trees (default: 100)
+\item max_depth: max tree depth (default: "auto")
+\item numberOfCores: number of cores (default: 1)
+\item use_log_file: logging setting (default: TRUE)
+\item append: append setting (default: FALSE)
+\item verbose: verbose setting (default: TRUE)
+\item log_file_path: log file path (default: NULL)
+\item excludedFromQuantificationFilter: filter setting (default: NULL)
+}
 }
 \keyword{internal}

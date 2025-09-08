@@ -45,7 +45,7 @@ SpectronauttoMSstatsFormat = function(
         use_log_file = TRUE, append = FALSE, verbose = TRUE, 
         log_file_path = NULL, ...
 ) {
-    .validateMSstatsConverterParameters(
+    validation_config = list(
         input = input, 
         annotation = annotation, 
         intensity = intensity, 
@@ -68,10 +68,10 @@ SpectronauttoMSstatsFormat = function(
         use_log_file = use_log_file, 
         append = append, 
         verbose = verbose, 
-        log_file_path = log_file_path,
-        converter_name = "Spectronaut",
-        ...
+        log_file_path = log_file_path
     )
+    
+    .validateMSstatsConverterParameters(validation_config)
     
     MSstatsConvert::MSstatsLogsSettings(use_log_file, append, verbose, 
                                         log_file_path)
