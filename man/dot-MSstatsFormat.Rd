@@ -4,10 +4,12 @@
 \alias{.MSstatsFormat}
 \title{Output format for further analysis by MSstats}
 \usage{
-.MSstatsFormat(input)
+.MSstatsFormat(input, anomaly_metrics = c())
 }
 \arguments{
 \item{input}{data.table}
+
+\item{anomaly_metrics}{character vector of quality metric column names to be used as features in an anomaly detection model}
 }
 \value{
 object of class MSstatsValidated that inherits from data.frame

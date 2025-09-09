@@ -4,12 +4,15 @@
 \alias{.makeBalancedDesign}
 \title{Fill missing rows to create balanced design}
 \usage{
-.makeBalancedDesign(input, fill_missing)
+.makeBalancedDesign(input, fill_missing, anomaly_metrics = c())
 }
 \arguments{
 \item{input}{output of \code{MSstatsPreprocess}}
 
-\item{fill_missing}{if TRUE, missing Intensities values will be added to data
+\item{fill_missing}{if TRUE, missing Intensities values will be added to data}
+
+\item{anomaly_metrics}{character vector of quality metric column names to be
+used as features in an anomaly detection model.
 and marked as NA}
 }
 \value{

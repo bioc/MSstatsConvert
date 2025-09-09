@@ -1,10 +1,12 @@
 #' Fill missing rows to create balanced design
 #' @param input output of `MSstatsPreprocess`
 #' @param fill_missing if TRUE, missing Intensities values will be added to data 
+#' @param anomaly_metrics character vector of quality metric column names to be 
+#' used as features in an anomaly detection model.
 #' and marked as NA
 #' @return data.table
 #' @keywords internal
-.makeBalancedDesign = function(input, fill_missing) {
+.makeBalancedDesign = function(input, fill_missing, anomaly_metrics = c()) {
     feature = NULL
     
     is_tmt = is.element("Channel", colnames(input))
@@ -14,9 +16,11 @@
                          c("ProteinName", "feature", "PeptideSequence", "PSM", 
                            "PrecursorCharge", "FragmentIon", "ProductCharge"))
         annotation_cols = intersect(colnames(input), 
-                                    c("Run", "Condition", "BioReplicate", "Channel",
-                                      "Mixture", "TechRepMixture", "TechReplicate"))
-        intensity_ids = intersect(c("feature", "Run", "Channel", "IsotopeLabelType",
+                                    c("Run", "Condition", "BioReplicate", 
+                                      "Channel", "Mixture", "TechRepMixture", 
+                                      "TechReplicate"))
+        intensity_ids = intersect(c("feature", "Run", 
+                                    "Channel", "IsotopeLabelType",
                                     "Fraction"), colnames(input))
         if (is_tmt) {
             group_col = "Run"
@@ -37,7 +41,8 @@
             all_possibilities, 
             unique(input[, annotation_cols, with = FALSE]),
             all.x = TRUE, by = unique(c("Run", measurement_col)))
-        intensities = intersect(c(intensity_ids, "Intensity", "isZero"), 
+        intensities = intersect(c(intensity_ids, "Intensity",
+                                  "isZero", anomaly_metrics), 
                                 colnames(input))
         input = merge(all_possibilities, 
                       unique(input[, intensities, with = FALSE]),
@@ -60,7 +65,7 @@
 #' @param group_col name of column in `input`. Combination of values of 
 #' `feature_col` and `measurement_col` will be created within each unique value
 #' of this column
-#' @param `feature_column` name of the column that labels features
+#' @param `feature_col` name of the column that labels features
 #' @param `measurement_col` name of a column with measurement labels - Runs in
 #' label-free case, Channels in TMT case.
 #' @param is_tmt if TRUE, data will be treated as coming from TMT experiment.

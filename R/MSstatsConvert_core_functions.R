@@ -322,6 +322,7 @@ setMethod("MSstatsClean", signature = "MSstatsProteinProspectorFiles",
 #' names defined by the names of this list and values corresponding to its elements
 #' will be added to the output `data.frame`.
 #' @param aggregate_isotopic logical. If `TRUE`, isotopic peaks will by summed.
+#' @param anomaly_metrics character vector of names of columns with quality metrics. Default is missing and is not required if anomaly model not run.
 #' @param ... additional parameters to `data.table::fread`.
 #' 
 #' @return data.table
@@ -363,7 +364,7 @@ MSstatsPreprocess = function(
                             summarize_multiple_psms = max),
     score_filtering = list(), exact_filtering = list(), 
     pattern_filtering = list(), columns_to_fill = list(), 
-    aggregate_isotopic = FALSE, ...
+    aggregate_isotopic = FALSE, anomaly_metrics = c(), ...
 ) {
     .checkMSstatsParams(input, annotation, feature_columns,
                         remove_shared_peptides,
@@ -380,8 +381,10 @@ MSstatsPreprocess = function(
     input = .handleIsotopicPeaks(input, aggregate_isotopic)
     input = .filterFewMeasurements(input, 1, FALSE)
     input = .handleSharedPeptides(input, remove_shared_peptides)
-    input = .cleanByFeature(input, feature_columns, feature_cleaning)
-    input = .handleSingleFeaturePerProtein(input, remove_single_feature_proteins)
+    input = .cleanByFeature(input, feature_columns, 
+                            feature_cleaning, anomaly_metrics)
+    input = .handleSingleFeaturePerProtein(input, 
+                                           remove_single_feature_proteins)
     input = .mergeAnnotation(input, annotation)
     .fillValues(input, columns_to_fill)
     .adjustIntensities(input)
@@ -406,6 +409,7 @@ MSstatsPreprocess = function(
 #' If "na_to_zero", missing values will be replaced by zeros.
 #' @param remove_few lgl, if TRUE, features with one or two measurements 
 #' across runs will be removed.
+#' @param anomaly_metrics character vector of names of columns with quality metrics
 #' 
 #' @export
 #' @return data.frame of class `MSstatsValidated`
@@ -422,7 +426,7 @@ MSstatsPreprocess = function(
 #' 
 MSstatsBalancedDesign = function(input, feature_columns, fill_incomplete = TRUE,
                                  handle_fractions = TRUE, fix_missing = NULL,
-                                 remove_few = TRUE) {
+                                 remove_few = TRUE, anomaly_metrics = c()) {
     feature = NULL
     
     input[, feature := do.call(".combine", .SD), .SDcols = feature_columns]
@@ -435,7 +439,7 @@ MSstatsBalancedDesign = function(input, feature_columns, fill_incomplete = TRUE,
         getOption("MSstatsLog")("INFO", msg_fractions)
         getOption("MSstatsMsg")("INFO", msg_fractions)
     } 
-    input = .makeBalancedDesign(input, fill_incomplete)
+    input = .makeBalancedDesign(input, fill_incomplete, anomaly_metrics)
     msg_balanced = paste("** Updated quantification data to make balanced design.",
                          "Missing values are marked by NA")
     getOption("MSstatsLog")("INFO", msg_balanced)
@@ -445,7 +449,7 @@ MSstatsBalancedDesign = function(input, feature_columns, fill_incomplete = TRUE,
                   with = FALSE]
     
     getOption("MSstatsLog")("INFO", "\n")
-    .MSstatsFormat(input)
+    .MSstatsFormat(input, anomaly_metrics)
 }
 
 
@@ -511,4 +515,87 @@ MSstatsMakeAnnotation = function(input, annotation, ...) {
     getOption("MSstatsLog")("INFO", msg)
     getOption("MSstatsMsg")("INFO", msg)
     annotation
+}
+
+#' Run Anomaly Model
+#' 
+#' @param input data.table preprocessed by the MSstatsBalancedDesign function
+#' @param quality_metrics character vector of quality metrics to use in the model
+#' @param temporal_direction character vector of same length as quality_metrics indicating temporal feature to create.
+#' @param missing_run_count numeric, maximum allowed fraction of missing runs per feature.
+#' @param n_feat numeric, maximum number of features per protein to use in the model.
+#' @param run_order data.frame with two columns: Run and Order. Order should be numeric and indicate the order of runs.
+#' @param n_trees numeric, number of trees to use in the isolation forest model. Default is 100.
+#' @param max_depth numeric or "auto", maximum depth of each tree. Default is "auto" which sets depth to log2(N) where N is the number of runs.
+#' @param cores numeric, number of cores to use for parallel processing. Default is 1.
+#' @useDynLib MSstatsConvert, .registration = TRUE
+#' 
+#' @return data.table
+#' @export
+MSstatsAnomalyScores = function(input, quality_metrics, temporal_direction,
+                                missing_run_count, n_feat, run_order, n_trees, 
+                                max_depth, cores){
+    
+    input = .prepareSpectronautAnomalyInput(input, quality_metrics, 
+                                            run_order, n_feat, 
+                                            missing_run_count)
+    input$PSM = paste0(input$PeptideSequence, input$PrecursorCharge)
+    
+    for (i in seq_along(quality_metrics)){
+        if (temporal_direction[i] != FALSE){
+            quality_metrics = c(quality_metrics,
+                                paste0(quality_metrics[i], ".",
+                                       temporal_direction[i]))
+        }
+    }
+    
+    input = .runAnomalyModel(input, 
+                             n_trees=n_trees, 
+                             max_depth=max_depth, 
+                             cores=cores,
+                             split_column="PSM",
+                             quality_metrics=quality_metrics)
+    
+    subset_cols = c("Run", "ProteinName", "PeptideSequence", 
+                    "PrecursorCharge", "FragmentIon", 
+                    "ProductCharge", "IsotopeLabelType", 
+                    "Condition", "BioReplicate", 
+                    "Fraction", "Intensity", "AnomalyScores",
+                    quality_metrics)
+    
+    subset_cols = subset_cols[subset_cols %in% names(input)]
+    input = input[, ..subset_cols]
+    
+    return(input)
+
+}
+
+#' Takes as input the output of the SpectronauttoMSstatsFormat function and calculates various quality metrics to assess the health of the data. Requires Anomaly Detection model to be fit.
+#' 
+#' @param input MSstats input which is the output of Spectronaut converter
+#' @return list of two data.tables
+#' 
+#' @export
+CheckDataHealth = function(input){
+    
+    input = as.data.table(input)
+    
+    # All intensity characteristics
+    missing_percent = .checkMissing(input)
+    zero_truncated = .checkIntensityDistribution(input)
+    
+    # Feature specific characteristics
+    input$Feature = paste(input$PeptideSequence,
+                          input$PrecursorCharge,
+                          input$FragmentIon,
+                          input$ProductCharge, sep="_")
+    feature_data = .checkFeatureSD(input)
+    outlier_info = .checkFeatureOutliers(input, feature_data)
+    feature_data = outlier_info[[1]]
+    outlier_summary = outlier_info[[2]]
+    feature_data = .checkFeatureCoverage(input, feature_data)
+    
+    skew_results = .checkAnomalySkew(input)
+    
+    return(list(feature_data, skew_results))
 }

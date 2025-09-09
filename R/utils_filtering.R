@@ -90,7 +90,7 @@
 #' Handle filtering by pattern
 #' @param input `data.table` preprocessed by one of the .cleanRaw* functions.
 #' @param col_name chr, name of the column with peptide sequences.
-#' @param pattern chr, regular expression - matching peptides will be 
+#' @param patterns chr, regular expression - matching peptides will be 
 #' removed from the data.
 #' @param filter lgl, if TRUE, peptides will be actually filtered.
 #' @param drop lgl, if TRUE, the `column` will be dropped.

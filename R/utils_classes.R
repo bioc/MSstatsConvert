@@ -5,11 +5,12 @@ setOldClass("MSstatsValidated", S4Class = "MSstatsValidated")
 
 #' Output format for further analysis by MSstats
 #' @param input data.table
+#' @param anomaly_metrics character vector of quality metric column names to be used as features in an anomaly detection model
 #' @importFrom methods new
 #' @return object of class MSstatsValidated that inherits from data.frame
 #' @keywords internal
-.MSstatsFormat = function(input) {
-    input = .selectMSstatsColumns(input)
+.MSstatsFormat = function(input, anomaly_metrics = c()) {
+    input = .selectMSstatsColumns(input, anomaly_metrics)
     new("MSstatsValidated", as.data.frame(input))
 }
 

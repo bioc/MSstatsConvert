@@ -4,7 +4,7 @@
 \alias{.selectMSstatsColumns}
 \title{Select columns for MSstats format}
 \usage{
-.selectMSstatsColumns(input)
+.selectMSstatsColumns(input, anomaly_metrics)
 }
 \arguments{
 \item{input}{data.table}

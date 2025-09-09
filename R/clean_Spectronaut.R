@@ -1,32 +1,39 @@
 #' Clean raw Spectronaut output.
 #' @param msstats_object an object of class `MSstatsSpectronautFiles`.
 #' @param intensity chr, specifies which column will be used for Intensity.
+#' @param calculateAnomalyScores logical, whether to calculate anomaly scores
+#' @param anomalyModelFeatures character vector, specifies which columns will be used for anomaly detection model. Can be NULL if calculateAnomalyScores=FALSE.
 #' @return `data.table`
 #' @keywords internal
-.cleanRawSpectronaut = function(msstats_object, intensity) {
+.cleanRawSpectronaut = function(msstats_object, intensity,
+                                calculateAnomalyScores, 
+                                anomalyModelFeatures) {
   FFrgLossType = FExcludedFromQuantification = NULL
   
   spec_input = getInputFile(msstats_object, "input")
   .validateSpectronautInput(spec_input)
   spec_input = spec_input[FFrgLossType == "noloss", ]
-  
-  if (is.character(spec_input$FExcludedFromQuantification)) {
-      spec_input = spec_input[FExcludedFromQuantification == "False", ]
-  } else {
-      spec_input = spec_input[!(as.logical(FExcludedFromQuantification)), ]
-  }
 
   f_charge_col = .findAvailable(c("FCharge", "FFrgZ"), colnames(spec_input))
   pg_qval_col = .findAvailable(c("PGQvalue"), colnames(spec_input))
+  interference_col = .findAvailable(c("FPossibleInterference"), 
+                                    colnames(spec_input))
+  exclude_col = .findAvailable(c("FExcludedFromQuantification"), 
+                               colnames(spec_input))
   cols = c("PGProteinGroups", "EGModifiedSequence", "FGCharge", "FFrgIon", 
            f_charge_col, "RFileName", "RCondition", "RReplicate", 
-           "EGQvalue", pg_qval_col, paste0("F", intensity))
+           "EGQvalue", pg_qval_col, interference_col, exclude_col,
+           paste0("F", intensity))
+  if (calculateAnomalyScores){
+    cols = c(cols, anomalyModelFeatures)
+  }
   cols = intersect(cols, colnames(spec_input))
   spec_input = spec_input[, cols, with = FALSE]
   data.table::setnames(
     spec_input, 
     c("PGProteinGroups", "EGModifiedSequence", "FGCharge", "FFrgIon",
-      f_charge_col, "RFileName", paste0("F", intensity), "RCondition", "RReplicate"),
+      f_charge_col, "RFileName", paste0("F", intensity), 
+      "RCondition", "RReplicate"),
     c("ProteinName", "PeptideSequence", "PrecursorCharge", "FragmentIon",
       "ProductCharge", "Run", "Intensity", "Condition", "BioReplicate"), 
     skip_absent = TRUE)
