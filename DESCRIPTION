@@ -25,7 +25,8 @@ Imports:
     checkmate,
     utils,
     stringi,
-    Rcpp
+    Rcpp,
+    parallel
 Suggests: 
     tinytest,
     covr,
