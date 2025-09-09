@@ -57,7 +57,7 @@ We assume to use unique peptide for each protein.}
 
 \item{anomalyModelFeatures}{character vector of quality metric column names to be used as features in the anomaly detection model. List must not be empty if calculateAnomalyScores=TRUE.}
 
-\item{anomalyModelFeatureTemporal}{character vector of temporal direction corresponding to columns passed to anomalyModelFeatures. Values must be one of: \code{mean_decrease}, \code{mean_incrase}, \code{dispersion_increase}, or NULL (to perform no temporal feature engineering). Default is empty vector. If calculateAnomalyScores=TRUE, vector must have as many values as anomalyModelFeatures (even if all NULL).}
+\item{anomalyModelFeatureTemporal}{character vector of temporal direction corresponding to columns passed to anomalyModelFeatures. Values must be one of: \code{mean_decrease}, \code{mean_increase}, \code{dispersion_increase}, or NULL (to perform no temporal feature engineering). Default is empty vector. If calculateAnomalyScores=TRUE, vector must have as many values as anomalyModelFeatures (even if all NULL).}
 
 \item{removeMissingFeatures}{Remove features with missing values in more than this fraction of runs. Default is 0.5. Only used if calculateAnomalyScores=TRUE.}
 

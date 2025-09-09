@@ -11,7 +11,6 @@
 #' \code{\link{MSstatsBalancedDesign}} for handling fractions and creating balanced data.
 #'
 #' @import data.table
-#' @docType _PACKAGE
 #' @name MSstatsConvert
-#'
-NULL
+#' @keywords internal
+"_PACKAGE"
