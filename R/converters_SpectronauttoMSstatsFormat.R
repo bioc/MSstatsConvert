@@ -103,12 +103,13 @@ SpectronauttoMSstatsFormat = function(
                        filter = filter_with_Qvalue, 
                        drop_column = TRUE)
     excluded_quant_filter = list(
-        col_name = "FExcludedFromQuantification", 
-        filter_symbols = TRUE, 
-        behavior = "fill", 
-        fill_value = NA_real_, 
-        filter = TRUE, 
-        drop_column = TRUE)
+        col_name    = "FExcludedFromQuantification",
+        filter_symbols = TRUE,
+        behavior    = "fill",
+        fill_value  = NA_real_,
+        filter      = excludedFromQuantificationFilter,
+        drop_column = TRUE
+    )
     
     feature_columns = c("PeptideSequence", "PrecursorCharge", 
                         "FragmentIon", "ProductCharge")
