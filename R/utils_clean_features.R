@@ -3,9 +3,12 @@
 #' @param feature_columns character vector of names of columns that define features.
 #' @param cleaning_control named list of two or three elements. 
 #' See the documentation for `MSstatsImport` for details.
+#' @param anomaly_metrics character vector of quality metric column names to be 
+#' used as features in an anomaly detection model.
 #' @return `data.table`
 #' @keywords internal 
-.cleanByFeature = function(input, feature_columns, cleaning_control) {
+.cleanByFeature = function(input, feature_columns, 
+                           cleaning_control, anomaly_metrics = c()) {
     if (is.element("Channel", colnames(input))) {
         input = .filterFewMeasurements(
             input, 0, 
@@ -21,7 +24,8 @@
         
         input = .summarizeMultipleMeasurements(
             input, cleaning_control[["summarize_multiple_psms"]],
-            c(feature_columns, "Run"))
+            c(feature_columns, "Run"),
+            anomaly_metrics)
         msg = paste("** Multiple measurements in a feature and a run",
                     "are summarized by summaryforMultipleRows:", summary_str)
         getOption("MSstatsLog")("INFO", msg)
@@ -41,7 +45,7 @@
 #' @param remove_few logical, if TRUE, features that have less than three 
 #' measurements will be removed. If FALSE, only features with all missing runs
 #' will be removed.
-#' @param features_columns chr, vector of names of columns that define features. 
+#' @param feature_columns chr, vector of names of columns that define features. 
 #' @return data.table
 #' @keywords internal
 .filterFewMeasurements = function(input, min_intensity, remove_few,
@@ -84,10 +88,13 @@
 #' Summarize multiple measurements per feature in a single run
 #' @param input `data.table` pre-processed by one of the .cleanRaw* functions.
 #' @param aggregator function that will be used to aggregate duplicated values.
-#' @param feature_columns chr, vector of names of columns that define features. 
+#' @param feature_columns chr, vector of names of columns that define features.
+#' @param anomaly_metrics character vector of quality metric column names 
+#' to be used as features in an anomaly detection model.
 #' @return `data.table`
 #' @keywords internal
-.summarizeMultipleMeasurements = function(input, aggregator, feature_columns) {
+.summarizeMultipleMeasurements = function(input, aggregator, 
+                                          feature_columns, anomaly_metrics = c()) {
     Intensity = isZero = NULL
     
     info = unique(input[, intersect(colnames(input), 
@@ -96,14 +103,26 @@
                                       "PeptideSequence", "PrecursorCharge",
                                       "IsotopeLabelType")), 
                         with = FALSE])
-    if (is.element("isZero", colnames(input))) {
+    
+    if (is.element("isZero", colnames(input)) & length(anomaly_metrics) == 0) {
         input = input[, list(Intensity = aggregator(Intensity, na.rm = TRUE),
                              isZero = all(isZero | is.na(Intensity)) &
                                  !all(is.na(Intensity))), 
                       by = feature_columns]
+    } else if (length(anomaly_metrics) > 0){
+        
+        input[, row_id := .I]
+        max_per_group = input[, .(max_intensity = max(Intensity, na.rm = TRUE)),
+                              by = feature_columns]
+        
+        input = input[max_per_group, 
+                         on = c(feature_columns, "Intensity" = "max_intensity"),
+                         nomatch = 0L, mult = "first"]
+        input[, row_id := NULL]
+        
     } else {
         input = input[, list(Intensity = aggregator(Intensity, na.rm = TRUE)), 
-                      by = feature_columns]
+                      by = c(feature_columns)]
     }
     merge(input, info, 
           by = intersect(colnames(input), colnames(info)), sort = FALSE)

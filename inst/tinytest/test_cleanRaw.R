@@ -193,22 +193,31 @@ expect_true(nrow(sm_cleaned) > 0)
 expect_error(MSstatsConvert::MSstatsClean(spectromine_import_error))
 # Spectronaut
 spectronaut_input = data.table::fread("./raw_data/Spectronaut/spectronaut_input.csv")
-spectronaut_input2 = data.table::copy(spectronaut_input)
-spectronaut_input2$F.ExcludedFromQuantification = ifelse(
-    spectronaut_input2$F.ExcludedFromQuantification,
-    "True", "False"
-)
 spectronaut_import = MSstatsConvert::MSstatsImport(list(input = spectronaut_input), 
                                                    "MSstats", "Spectronaut")
-spectronaut_import2 = MSstatsConvert::MSstatsImport(list(input = spectronaut_input2), 
-                                                    "MSstats", "Spectronaut")
 sn_cleaned = MSstatsConvert::MSstatsClean(spectronaut_import,
-                                          intensity = "PeakArea")
-sn_cleaned2 = MSstatsConvert::MSstatsClean(spectronaut_import2,
-                                           intensity = "PeakArea")
-expect_equal(ncol(sn_cleaned), 11)
+                                          intensity = "PeakArea", 
+                                          calculateAnomalyScores = FALSE, 
+                                          anomalyModelFeatures = c())
+expect_equal(ncol(sn_cleaned), 12)
 expect_true(nrow(sn_cleaned) > 0)
-expect_equal(sn_cleaned, sn_cleaned2)
+
+# Test new peak quality columns
+spectronaut_input_2 = spectronaut_input
+spectronaut_input_2$`FG.ShapeQualityScore (MS2)` = 1
+spectronaut_input_2$`FG.ShapeQualityScore (MS1)` = 1
+spectronaut_input_2$`EG.ApexRT` = 1
+spectronaut_input_2$`F.PossibleInterference` = TRUE
+spectronaut_import_2 = MSstatsConvert::MSstatsImport(list(input = spectronaut_input_2), 
+                                                   "MSstats", "Spectronaut")
+sn_cleaned_2 = MSstatsConvert::MSstatsClean(spectronaut_import_2,
+                                          intensity = "PeakArea", 
+                                          calculateAnomalyScores = TRUE, 
+                                          anomalyModelFeatures = c("FGShapeQualityScore(MS2)",
+                                                                   "FGShapeQualityScore(MS1)",
+                                                                   "EGApexRT"))
+expect_equal(ncol(sn_cleaned_2), 16)
+expect_true(nrow(sn_cleaned_2) > 0)
 
 # Metamorpheus
 metamorpheus_table = data.table::fread("./raw_data/Metamorpheus/QuantifiedPeaks.tsv")

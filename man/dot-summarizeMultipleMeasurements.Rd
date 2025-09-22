@@ -4,7 +4,12 @@
 \alias{.summarizeMultipleMeasurements}
 \title{Summarize multiple measurements per feature in a single run}
 \usage{
-.summarizeMultipleMeasurements(input, aggregator, feature_columns)
+.summarizeMultipleMeasurements(
+  input,
+  aggregator,
+  feature_columns,
+  anomaly_metrics = c()
+)
 }
 \arguments{
 \item{input}{\code{data.table} pre-processed by one of the .cleanRaw* functions.}
@@ -12,6 +17,9 @@
 \item{aggregator}{function that will be used to aggregate duplicated values.}
 
 \item{feature_columns}{chr, vector of names of columns that define features.}
+
+\item{anomaly_metrics}{character vector of quality metric column names
+to be used as features in an anomaly detection model.}
 }
 \value{
 \code{data.table}

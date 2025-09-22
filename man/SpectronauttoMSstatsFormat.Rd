@@ -8,12 +8,22 @@ SpectronauttoMSstatsFormat(
   input,
   annotation = NULL,
   intensity = "PeakArea",
+  excludedFromQuantificationFilter = TRUE,
   filter_with_Qvalue = FALSE,
   qvalue_cutoff = 0.01,
   useUniquePeptide = TRUE,
   removeFewMeasurements = TRUE,
   removeProtein_with1Feature = FALSE,
   summaryforMultipleRows = max,
+  calculateAnomalyScores = FALSE,
+  anomalyModelFeatures = c(),
+  anomalyModelFeatureTemporal = c(),
+  removeMissingFeatures = 0.5,
+  anomalyModelFeatureCount = 100,
+  runOrder = NULL,
+  n_trees = 100,
+  max_depth = "auto",
+  numberOfCores = 1,
   use_log_file = TRUE,
   append = FALSE,
   verbose = TRUE,
@@ -28,6 +38,8 @@ SpectronauttoMSstatsFormat(
 
 \item{intensity}{'PeakArea'(default) uses not normalized peak area. 'NormalizedPeakArea' uses peak area normalized by Spectronaut.}
 
+\item{excludedFromQuantificationFilter}{Remove rows with F.ExcludedFromQuantification=TRUE Default is TRUE.}
+
 \item{filter_with_Qvalue}{FALSE(default) will not perform any filtering. TRUE will filter out the intensities that have greater than qvalue_cutoff in EG.Qvalue column. Those intensities will be replaced with zero and will be considered as censored missing values for imputation purpose.}
 
 \item{qvalue_cutoff}{Cutoff for EG.Qvalue. default is 0.01.}
@@ -40,6 +52,24 @@ We assume to use unique peptide for each protein.}
 \item{removeProtein_with1Feature}{TRUE will remove the proteins which have only 1 feature, which is the combination of peptide, precursor charge, fragment and charge. FALSE is default.}
 
 \item{summaryforMultipleRows}{max(default) or sum - when there are multiple measurements for certain feature and certain run, use highest or sum of multiple intensities.}
+
+\item{calculateAnomalyScores}{Default is FALSE. If TRUE, will run anomaly detection model and calculate anomaly scores for each feature. Used downstream to weigh measurements in differential analysis.}
+
+\item{anomalyModelFeatures}{character vector of quality metric column names to be used as features in the anomaly detection model. List must not be empty if calculateAnomalyScores=TRUE.}
+
+\item{anomalyModelFeatureTemporal}{character vector of temporal direction corresponding to columns passed to anomalyModelFeatures. Values must be one of: \code{mean_decrease}, \code{mean_increase}, \code{dispersion_increase}, or NULL (to perform no temporal feature engineering). Default is empty vector. If calculateAnomalyScores=TRUE, vector must have as many values as anomalyModelFeatures (even if all NULL).}
+
+\item{removeMissingFeatures}{Remove features with missing values in more than this fraction of runs. Default is 0.5. Only used if calculateAnomalyScores=TRUE.}
+
+\item{anomalyModelFeatureCount}{Feature selection for anomaly model. Anomaly detection works on the precursor-level and can be much slower if all features used. We will by default filter to the top-100 highest intensity features. This can be adjusted as necessary. To turn feature-selection off, set this value to a high number (e.g. 10000). Only used if calculateAnomalyScores=TRUE.}
+
+\item{runOrder}{Temporal order of MS runs. Should be a two column data.table with columns \code{Run} and \code{Order}, where \code{Run} matches the run name output by Spectronaut and \code{Order} is an integer. Used to engineer the temporal features defined in anomalyModelFeatureTemporal.}
+
+\item{n_trees}{Number of trees to use in isolation forest when calculateAnomalyScores=TRUE. Default is 100.}
+
+\item{max_depth}{Max tree depth to use in isolation forest when calculateAnomalyScores=TRUE. Default is "auto" which calculates depth as log2(N) where N is the number of runs. Otherwise must be an integer.}
+
+\item{numberOfCores}{Number of cores for parallel processing anomaly detection model. When > 1, a logfile named 'MSstats_anomaly_model_progress.log' is created to track progress. Only works for Linux & Mac OS. Default is 1.}
 
 \item{use_log_file}{logical. If TRUE, information about data processing
 will be saved to a file.}

@@ -20,7 +20,7 @@
 measurements will be removed. If FALSE, only features with all missing runs
 will be removed.}
 
-\item{features_columns}{chr, vector of names of columns that define features.}
+\item{feature_columns}{chr, vector of names of columns that define features.}
 }
 \value{
 data.table

@@ -111,14 +111,14 @@
 #' @param input data.table
 #' @return data.table
 #' @keywords internal
-.selectMSstatsColumns = function(input) {
+.selectMSstatsColumns = function(input, anomaly_metrics) {
     Condition = NULL
 
     standard_columns = c(
         "ProteinName", "PeptideSequence", "PeptideModifiedSequence", 
         "PrecursorCharge", "FragmentIon", "ProductCharge", "IsotopeLabelType",
         "Condition", "BioReplicate", "Run", "TechReplicate", "StandardType", 
-        "Fraction", "DetectionQValue", "Intensity"
+        "Fraction", "DetectionQValue", "Intensity", anomaly_metrics
       )
     
     standard_columns_tmt = c("ProteinName", "PeptideSequence", "PrecursorCharge", 
