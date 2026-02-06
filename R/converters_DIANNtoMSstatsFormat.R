@@ -14,8 +14,7 @@
 #' @param pg_qvalue_cutoff If MBR is false, the qvalue cutoff for the Global.PG.Q.Value 
 #' column, i.e. the global q-value for the protein group.  If MBR is true, the
 #' qvalue cutoff for the Lib.PG.Q.Value column, i.e. the protein group q-value for 
-#' the library created after the first MBR pass. Run should be the same as filename.
-#' Default is 0.01.
+#' the library created after the first MBR pass. Default is 0.01.
 #' @param useUniquePeptide should unique pepties be removed
 #' @param removeFewMeasurements should proteins with few measurements be removed
 #' @param removeOxidationMpeptides should peptides with oxidation be removed
@@ -71,7 +70,10 @@ DIANNtoMSstatsFormat = function(input, annotation = NULL,
     input = MSstatsConvert::MSstatsImport(list(input = input),
                                           "MSstats", "DIANN")
     input = MSstatsConvert::MSstatsClean(input, MBR = MBR, 
-                                         quantificationColumn = quantificationColumn)
+                                         quantificationColumn = quantificationColumn,
+                                         global_qvalue_cutoff = global_qvalue_cutoff,
+                                         qvalue_cutoff = qvalue_cutoff, 
+                                         pg_qvalue_cutoff = pg_qvalue_cutoff)
     annotation = MSstatsConvert::MSstatsMakeAnnotation(input, annotation)
     
     decoy_filter = list(col_name = "ProteinName",
@@ -82,39 +84,6 @@ DIANNtoMSstatsFormat = function(input, annotation = NULL,
                             pattern = "\\(UniMod\\:35\\)",
                             filter = removeOxidationMpeptides,
                             drop_column = FALSE)
-    
-    msg = paste0('** Filtering on Global Q Value < ', global_qvalue_cutoff)
-    getOption("MSstatsLog")("INFO", msg)
-    getOption("MSstatsMsg")("INFO", msg)
-    
-    input = input[DetectionQValue < global_qvalue_cutoff, ]
-    if (MBR) {
-        msg = '** MBR was used to analyze the data. Now setting names and filtering'
-        msg_1_mbr = paste0('-- LibPGQValue < ', pg_qvalue_cutoff)
-        msg_2_mbr = paste0('-- LibQValue < ', qvalue_cutoff)
-        input = input[LibPGQValue < pg_qvalue_cutoff, ]
-        input = input[LibQValue < qvalue_cutoff, ]
-        getOption("MSstatsLog")("INFO", msg)
-        getOption("MSstatsMsg")("INFO", msg)
-        getOption("MSstatsLog")("INFO", msg_1_mbr)
-        getOption("MSstatsMsg")("INFO", msg_1_mbr)
-        getOption("MSstatsLog")("INFO", msg_2_mbr)
-        getOption("MSstatsMsg")("INFO", msg_2_mbr)
-        # getOption("MSstatsLog")("INFO", "\n")
-    } else{
-        msg = '** MBR was not used to analyze the data. Now setting names and filtering'
-        msg_1 = paste0('-- Filtering on GlobalPGQValue < ', pg_qvalue_cutoff)
-        msg_2 = paste0('-- Filtering on GlobalQValue < ', qvalue_cutoff)
-        input = input[GlobalPGQValue < pg_qvalue_cutoff, ]
-        input = input[GlobalQValue < qvalue_cutoff, ]
-        getOption("MSstatsLog")("INFO", msg)
-        getOption("MSstatsMsg")("INFO", msg)
-        getOption("MSstatsLog")("INFO", msg_1)
-        getOption("MSstatsMsg")("INFO", msg_1)
-        getOption("MSstatsLog")("INFO", msg_2)
-        getOption("MSstatsMsg")("INFO", msg_2)
-        # getOption("MSstatsLog")("INFO", "\n")
-    }
     
     feature_columns = c("PeptideSequence", "PrecursorCharge",
                         "FragmentIon", "ProductCharge")
