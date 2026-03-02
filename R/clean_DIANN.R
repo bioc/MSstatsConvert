@@ -8,7 +8,9 @@
                            quantificationColumn = "FragmentQuantCorrected",
                            global_qvalue_cutoff = 0.01,
                            qvalue_cutoff = 0.01, 
-                           pg_qvalue_cutoff = 0.01) {
+                           pg_qvalue_cutoff = 0.01,
+                           calculateAnomalyScores = FALSE, 
+                           anomalyModelFeatures = c()) {
     dn_input <- getInputFile(msstats_object, "input")
     dn_input <- data.table::as.data.table(dn_input)
     
@@ -19,7 +21,9 @@
     dn_input <- .cleanDIANNAddMissingColumns(dn_input)
     
     # Select required columns
-    dn_input <- .cleanDIANNSelectRequiredColumns(dn_input, quantificationColumn, MBR)
+    dn_input <- .cleanDIANNSelectRequiredColumns(dn_input, quantificationColumn, MBR,
+                                                 calculateAnomalyScores,
+                                                 anomalyModelFeatures)
     
     # Split concatenated values
     dn_input <- .cleanDIANNSplitConcatenatedValues(dn_input, quantificationColumn)
@@ -78,7 +82,9 @@
 #' @param MBR logical indicating if match between runs was used
 #' @return data.table with selected columns
 #' @noRd
-.cleanDIANNSelectRequiredColumns <- function(dn_input, quantificationColumn, MBR) {
+.cleanDIANNSelectRequiredColumns <- function(dn_input, quantificationColumn, MBR,
+                                             calculateAnomalyScores,
+                                             anomalyModelFeatures) {
     base_cols <- c('ProteinNames', 'StrippedSequence', 'ModifiedSequence', 
                    'PrecursorCharge', quantificationColumn, 'QValue', 
                    'PrecursorMz', 'FragmentInfo', 'Run')
@@ -89,7 +95,13 @@
         c('GlobalQValue', 'GlobalPGQValue')
     }
     
-    req_cols <- c(base_cols, mbr_cols)
+    qual_cols <- if (calculateAnomalyScores) {
+        anomalyModelFeatures
+    } else {
+        c()
+    }
+
+    req_cols <- c(base_cols, mbr_cols, qual_cols)
     return(dn_input[, req_cols, with = FALSE])
 }
 
@@ -163,13 +175,13 @@
     getOption("MSstatsLog")("INFO", msg)
     getOption("MSstatsMsg")("INFO", msg)
     
-    dn_input = dn_input[QValue < global_qvalue_cutoff, ]
+    dn_input = dn_input[QValue >= global_qvalue_cutoff, quantificationColumn := 0]
     if (MBR) {
         msg = '** MBR was used to analyze the data. Now setting names and filtering'
         msg_1_mbr = paste0('-- LibPGQValue < ', pg_qvalue_cutoff)
         msg_2_mbr = paste0('-- LibQValue < ', qvalue_cutoff)
-        dn_input = dn_input[LibPGQValue < pg_qvalue_cutoff, ]
-        dn_input = dn_input[LibQValue < qvalue_cutoff, ]
+        dn_input = dn_input[LibPGQValue >= pg_qvalue_cutoff, , quantificationColumn := 0]
+        dn_input = dn_input[LibQValue >= qvalue_cutoff, , quantificationColumn := 0]
         getOption("MSstatsLog")("INFO", msg)
         getOption("MSstatsMsg")("INFO", msg)
         getOption("MSstatsLog")("INFO", msg_1_mbr)
@@ -181,8 +193,8 @@
         msg = '** MBR was not used to analyze the data. Now setting names and filtering'
         msg_1 = paste0('-- Filtering on GlobalPGQValue < ', pg_qvalue_cutoff)
         msg_2 = paste0('-- Filtering on GlobalQValue < ', qvalue_cutoff)
-        dn_input = dn_input[GlobalPGQValue < pg_qvalue_cutoff, ]
-        dn_input = dn_input[GlobalQValue < qvalue_cutoff, ]
+        dn_input = dn_input[GlobalPGQValue >= pg_qvalue_cutoff, quantificationColumn := 0]
+        dn_input = dn_input[GlobalQValue >= qvalue_cutoff, quantificationColumn := 0]
         getOption("MSstatsLog")("INFO", msg)
         getOption("MSstatsMsg")("INFO", msg)
         getOption("MSstatsLog")("INFO", msg_1)

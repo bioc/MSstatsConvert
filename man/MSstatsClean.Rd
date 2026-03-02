@@ -69,7 +69,9 @@ MSstatsClean(msstats_object, ...)
   quantificationColumn = "FragmentQuantCorrected",
   global_qvalue_cutoff = 0.01,
   qvalue_cutoff = 0.01,
-  pg_qvalue_cutoff = 0.01
+  pg_qvalue_cutoff = 0.01,
+  calculateAnomalyScores = FALSE,
+  anomalyModelFeatures = c()
 )
 
 \S4method{MSstatsClean}{MSstatsMetamorpheusFiles}(msstats_object, MBR = TRUE, qvalue_cutoff = 0.05)

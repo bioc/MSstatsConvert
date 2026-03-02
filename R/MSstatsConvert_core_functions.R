@@ -518,6 +518,12 @@ MSstatsMakeAnnotation = function(input, annotation, ...) {
 }
 
 #' Run Anomaly Model
+#'
+#' Detects anomalous measurements in mass spectrometry data using an isolation forest algorithm.
+#' This function identifies unusual precursor measurements based on quality metrics and their 
+#' temporal patterns. For features with insufficient quality metric data, it assigns anomaly 
+#' scores based on the median score of similar features (same peptide and charge combination).
+#' The model supports parallel processing for improved performance on large datasets.
 #' 
 #' @param input data.table preprocessed by the MSstatsBalancedDesign function
 #' @param quality_metrics character vector of quality metrics to use in the model
@@ -535,7 +541,7 @@ MSstatsMakeAnnotation = function(input, annotation, ...) {
 MSstatsAnomalyScores = function(input, quality_metrics, temporal_direction,
                                 missing_run_count, n_feat, run_order, n_trees, 
                                 max_depth, cores){
-    
+
     input = .prepareSpectronautAnomalyInput(input, quality_metrics, 
                                             run_order, n_feat, 
                                             missing_run_count)
@@ -548,14 +554,14 @@ MSstatsAnomalyScores = function(input, quality_metrics, temporal_direction,
                                        temporal_direction[i]))
         }
     }
-    
+
     input = .runAnomalyModel(input, 
                              n_trees=n_trees, 
                              max_depth=max_depth, 
                              cores=cores,
                              split_column="PSM",
                              quality_metrics=quality_metrics)
-    
+
     subset_cols = c("Run", "ProteinName", "PeptideSequence", 
                     "PrecursorCharge", "FragmentIon", 
                     "ProductCharge", "IsotopeLabelType", 
