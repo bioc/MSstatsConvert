@@ -180,8 +180,8 @@
         msg = '** MBR was used to analyze the data. Now setting names and filtering'
         msg_1_mbr = paste0('-- LibPGQValue < ', pg_qvalue_cutoff)
         msg_2_mbr = paste0('-- LibQValue < ', qvalue_cutoff)
-        dn_input = dn_input[LibPGQValue >= pg_qvalue_cutoff, quantificationColumn := 0]
-        dn_input = dn_input[LibQValue >= qvalue_cutoff, quantificationColumn := 0]
+        dn_input = dn_input[LibPGQValue >= pg_qvalue_cutoff, (quantificationColumn) := 0]
+        dn_input = dn_input[LibQValue >= qvalue_cutoff, (quantificationColumn) := 0]
         getOption("MSstatsLog")("INFO", msg)
         getOption("MSstatsMsg")("INFO", msg)
         getOption("MSstatsLog")("INFO", msg_1_mbr)
@@ -193,8 +193,8 @@
         msg = '** MBR was not used to analyze the data. Now setting names and filtering'
         msg_1 = paste0('-- Filtering on GlobalPGQValue < ', pg_qvalue_cutoff)
         msg_2 = paste0('-- Filtering on GlobalQValue < ', qvalue_cutoff)
-        dn_input = dn_input[GlobalPGQValue >= pg_qvalue_cutoff, quantificationColumn := 0]
-        dn_input = dn_input[GlobalQValue >= qvalue_cutoff, quantificationColumn := 0]
+        dn_input = dn_input[GlobalPGQValue >= pg_qvalue_cutoff, (quantificationColumn) := 0]
+        dn_input = dn_input[GlobalQValue >= qvalue_cutoff, (quantificationColumn) := 0]
         getOption("MSstatsLog")("INFO", msg)
         getOption("MSstatsMsg")("INFO", msg)
         getOption("MSstatsLog")("INFO", msg_1)
