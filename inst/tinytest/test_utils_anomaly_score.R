@@ -37,9 +37,9 @@ baseline_scores = run_quality_metrics(
 # Data with progressively higher cumulative sums
 high_scores = run_quality_metrics(
     base_df_10,
-    c(rep(0.1, 5), seq(2.0, 5.0, length.out = 5)),  # mean_increase
-    c(rep(0.1, 5), seq(2.0, 5.0, length.out = 5)),  # mean_decrease
-    c(rep(0.1, 5), seq(2.0, 5.0, length.out = 5))   # dispersion_increase
+    c(seq(0, 0.1, length.out = 5), seq(2.0, 5.0, length.out = 5)),  # mean_increase
+    c(seq(0, 0.1, length.out = 5), seq(2.0, 5.0, length.out = 5)),  # mean_decrease
+    c(seq(0, 0.1, length.out = 5), seq(2.0, 5.0, length.out = 5))   # dispersion_increase
 )
 
 # The last 5 rows (with high values) should have higher mean anomaly scores
@@ -51,9 +51,9 @@ base_df_20 = create_base_df(20)
 
 extreme_scores = run_quality_metrics(
     base_df_20,
-    c(rep(0.1, 19), 10.0),  # Last value is extreme
-    c(rep(0.1, 19), 8.0),   # Last value is extreme
-    c(rep(0.1, 19), 12.0)   # Last value is extreme
+    c(seq(0, 0.1, length.out = 19), 10.0),  # Last value is extreme
+    c(seq(0, 0.1, length.out = 19), 8.0),   # Last value is extreme
+    c(seq(0, 0.1, length.out = 19), 12.0)   # Last value is extreme
 )
 
 # The extreme outlier (last row) should have the highest anomaly score
@@ -267,9 +267,9 @@ base_df_6_rank = create_base_df(6)
 # Create data with obvious ranking: Row 6 > Row 5 > Row 4 > Rows 1,2,3
 ranking_scores = run_quality_metrics(
     base_df_6_rank,
-    c(0.1, 0.1, 0.1, 1.0, 2.0, 5.0),
-    c(0.1, 0.1, 0.1, 1.0, 2.0, 5.0),
-    c(0.1, 0.1, 0.1, 1.0, 2.0, 5.0)
+    c(0.1, 0.11, 0.12, 1.0, 2.0, 5.0),
+    c(0.1, 0.11, 0.12, 1.0, 2.0, 5.0),
+    c(0.1, 0.11, 0.12, 1.0, 2.0, 5.0)
 )
 
 # Row 5 should have highest score, Row 4 second highest, etc.
@@ -367,3 +367,21 @@ low_abundance_excluded = MSstatsConvert:::.prepareSpectronautAnomalyInput(
     missing_run_count = 0.95)
 expect_true("AFPLAEWQPSDVDQR" %in% low_abundance_excluded$PeptideSequence)
 expect_false("LowAbundancePeptide" %in% low_abundance_excluded$PeptideSequence)
+
+
+# Test 11: Testing duplicity of quality metrics, applicable considering
+# multiple fragments share the same precursor level metrics
+
+# Data with progressively higher cumulative sums
+duplicate_metrics = run_quality_metrics(
+    base_df_10,
+    c(rep(0.1, 5), seq(2.0, 4.0, length.out = 5)),  # mean_increase
+    c(rep(0.1, 5), seq(2.0, 4.0, length.out = 5)),  # mean_decrease
+    c(rep(0.1, 5), seq(2.0, 4.0, length.out = 5))   # dispersion_increase
+)
+
+# The last 5 rows (with high values) should have lower mean anomaly scores
+# Since they are all clumped between 2 and 4, whereas 0.1 is by itself
+expect_true(mean(duplicate_metrics$AnomalyScores[6:10]) < mean(duplicate_metrics$AnomalyScores[1:5]),
+            info = "Rows 6-10 (values clumped 2-4) should have lower 
+            anomaly scores than rows 1-5 (isolated value of 0.1)")
