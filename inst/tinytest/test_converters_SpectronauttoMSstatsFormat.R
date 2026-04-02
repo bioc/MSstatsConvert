@@ -16,31 +16,38 @@ expect_true("IsotopeLabelType" %in% colnames(output))
 expect_true("Condition" %in% colnames(output))
 expect_true("BioReplicate" %in% colnames(output))
 expect_true("Fraction" %in% colnames(output))
-
+expect_true(all(spectronaut_raw$IsotopeLabelType == "L"))
 
 # Test SpectronauttoMSstatsFormat Missing Columns ---------------------------
 spectronaut_raw = system.file("tinytest/raw_data/Spectronaut/spectronaut_input.csv",
                               package = "MSstatsConvert")
 spectronaut_raw = data.table::fread(spectronaut_raw)
 spectronaut_raw$F.ExcludedFromQuantification = NULL
-expect_error(
-    SpectronauttoMSstatsFormat(spectronaut_raw, use_log_file = FALSE),
-    "The following columns are missing from the input data: FExcludedFromQuantification"
+expect_silent(
+    SpectronauttoMSstatsFormat(spectronaut_raw, use_log_file = FALSE)
 )
 
 spectronaut_raw = system.file("tinytest/raw_data/Spectronaut/spectronaut_input.csv",
                               package = "MSstatsConvert")
 spectronaut_raw = data.table::fread(spectronaut_raw)
 spectronaut_raw$F.FrgLossType = NULL
-expect_error(
-    SpectronauttoMSstatsFormat(spectronaut_raw, use_log_file = FALSE),
-    "The following columns are missing from the input data: FFrgLossType"
+expect_silent(
+    SpectronauttoMSstatsFormat(spectronaut_raw, use_log_file = FALSE)
 )
 
 spectronaut_raw = system.file("tinytest/raw_data/Spectronaut/spectronaut_input.csv",
                               package = "MSstatsConvert")
 spectronaut_raw = data.table::fread(spectronaut_raw)
 spectronaut_raw$PG.ProteinGroups = NULL
+expect_silent(
+    SpectronauttoMSstatsFormat(spectronaut_raw, use_log_file = FALSE)
+)
+
+spectronaut_raw = system.file("tinytest/raw_data/Spectronaut/spectronaut_input.csv",
+                              package = "MSstatsConvert")
+spectronaut_raw = data.table::fread(spectronaut_raw)
+spectronaut_raw$PG.ProteinGroups = NULL
+spectronaut_raw$PG.ProteinAccessions = NULL
 expect_error(
     SpectronauttoMSstatsFormat(spectronaut_raw, use_log_file = FALSE),
     "The following columns are missing from the input data: PGProteinGroups"
@@ -373,3 +380,50 @@ expect_error(SpectronauttoMSstatsFormat(
     n_trees = 100,
     max_depth = "auto"
 ))
+
+
+# --- Heavy Label Testing --------------------------------
+
+boxcar_path = system.file(
+    "tinytest/raw_data/Spectronaut/boxcar_protein_turnover_input.csv",
+    package = "MSstatsConvert")
+boxcar_raw = data.table::fread(boxcar_path)
+
+output_heavy = SpectronauttoMSstatsFormat(
+    boxcar_raw,
+    intensity    = "FG.MS1Quantity",
+    peptideSequenceColumn = "FG.LabeledSequence",
+    heavyLabel   = c("K[Lys6]"),
+    use_log_file = FALSE
+)
+
+expect_true("Run"              %in% colnames(output_heavy))
+expect_true("ProteinName"      %in% colnames(output_heavy))
+expect_true("PeptideSequence"  %in% colnames(output_heavy))
+expect_true("PrecursorCharge"  %in% colnames(output_heavy))
+expect_true("Intensity"        %in% colnames(output_heavy))
+expect_true("FragmentIon"      %in% colnames(output_heavy))
+expect_true("ProductCharge"    %in% colnames(output_heavy))
+expect_true("IsotopeLabelType" %in% colnames(output_heavy))
+expect_true("Condition"        %in% colnames(output_heavy))
+expect_true("BioReplicate"     %in% colnames(output_heavy))
+
+expect_true(all(c("0d", "8d", "32d") %in% unique(output_heavy$Condition)))
+expect_true(nrow(output_heavy) > 0)
+expect_false(any(is.na(output_heavy$ProteinName)))
+expect_true("H" %in% unique(output_heavy$IsotopeLabelType))
+expect_true("L" %in% unique(output_heavy$IsotopeLabelType))
+heavy_rows = subset(output_heavy, IsotopeLabelType == "H")
+expect_true(all(grepl("K", heavy_rows$PeptideSequence, fixed = TRUE)))
+light_rows = subset(output_heavy, IsotopeLabelType == "L")
+expect_true(all(grepl("K", light_rows$PeptideSequence, fixed = TRUE)))
+na_rows = subset(output_heavy, is.na(IsotopeLabelType))
+expect_false(any(grepl("K", na_rows$PeptideSequence, fixed = TRUE)))
+output_leu = SpectronauttoMSstatsFormat(
+    boxcar_raw,
+    peptideSequenceColumn = "FG.LabeledSequence",
+    intensity    = "FG.MS1Quantity",
+    heavyLabel   = c("L[Leu6]"),
+    use_log_file = FALSE
+)
+expect_false("H" %in% unique(output_leu$IsotopeLabelType))
