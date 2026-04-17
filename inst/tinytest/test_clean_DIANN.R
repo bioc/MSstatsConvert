@@ -54,3 +54,25 @@ output <- MSstatsConvert:::.cleanRawDIANN(input, MBR = FALSE, qvalue_cutoff = 0.
 expect_qvalue_cutoff(output, "GlobalQValue", 0.001)
 output <- MSstatsConvert:::.cleanRawDIANN(input, MBR = FALSE, pg_qvalue_cutoff = 0.0002)
 expect_qvalue_cutoff(output, "GlobalPGQValue", 0.0002)
+
+# Test .assignDIANNIsotopeLabelType ---------------------------
+# Channel path: Channel column is mapped to IsotopeLabelType, then dropped
+dt_channel = data.table::data.table(
+    PeptideSequence = c("PEPTIDEK", "PEPTIDEK", "PEPTIDEK"),
+    Channel = c("H", "L", "other")
+)
+result_channel = MSstatsConvert:::.assignDIANNIsotopeLabelType(
+    dt_channel, labeledAminoAcids = c("K"), has_channel = TRUE
+)
+expect_equal(result_channel$IsotopeLabelType, c("H", "L", NA_character_))
+expect_false("Channel" %in% colnames(result_channel))
+
+# NULL path: labeledAminoAcids = NULL returns input unchanged (no IsotopeLabelType added)
+dt_null = data.table::data.table(
+    PeptideSequence = c("PEPTIDEK(SILAC-K-H)", "PEPTIDEK(SILAC-K-L)")
+)
+result_null = MSstatsConvert:::.assignDIANNIsotopeLabelType(
+    dt_null, labeledAminoAcids = NULL, has_channel = FALSE
+)
+expect_false("IsotopeLabelType" %in% colnames(result_null))
+expect_equal(nrow(result_null), 2L)

@@ -73,7 +73,8 @@ MSstatsClean(msstats_object, ...)
   qvalue_cutoff = 0.01,
   pg_qvalue_cutoff = 0.01,
   calculateAnomalyScores = FALSE,
-  anomalyModelFeatures = c()
+  anomalyModelFeatures = c(),
+  labeledAminoAcids = NULL
 )
 
 \S4method{MSstatsClean}{MSstatsMetamorpheusFiles}(msstats_object, MBR = TRUE, qvalue_cutoff = 0.05)
@@ -170,6 +171,32 @@ Default is 0.01.}
 column, i.e. the global q-value for the protein group.  If MBR is true, the
 qvalue cutoff for the Lib.PG.Q.Value column, i.e. the protein group q-value for
 the library created after the first MBR pass. Default is 0.01.}
+
+\item{labeledAminoAcids}{Character vector of single-letter amino acid codes
+that carry the SILAC label in protein turnover experiments, e.g.
+\code{c("K")} or \code{c("K", "R")}.  Supplying this vector opts in to
+protein-turnover mode; the exact amino acids determine behaviour only in the
+\code{ModifiedSequence}-parsing path described below.
+
+\strong{Channel-based path} (DIA-NN 2.x exports that include a
+\code{Channel} column): when \code{labeledAminoAcids} is non-\code{NULL}
+\emph{and} the input contains a \code{Channel} column, \code{Channel} values
+are mapped directly to \code{IsotopeLabelType} (\code{"H"} → \code{"H"},
+\code{"L"} → \code{"L"}, anything else → \code{NA}).  The amino acid codes
+in \code{labeledAminoAcids} are \strong{not} used to validate or filter
+\code{ModifiedSequence} in this path.
+
+\strong{ModifiedSequence-parsing path} (DIA-NN 1.x exports without a
+\code{Channel} column): when \code{labeledAminoAcids} is non-\code{NULL}
+and no \code{Channel} column is present, each \code{ModifiedSequence} is
+inspected for SILAC suffixes of the form \code{(SILAC-<AA>-H)} or
+\code{(SILAC-<AA>-L)}, where \code{<AA>} is one of the supplied amino acid
+codes.  Matching sequences are classified as \code{"H"} or \code{"L"};
+sequences carrying neither suffix receive \code{IsotopeLabelType = NA}.
+The SILAC suffix is then stripped from \code{PeptideSequence}.
+
+When \code{NULL} (default), protein-turnover mode is disabled and all
+peptides receive \code{IsotopeLabelType = "Light"}.}
 }
 \value{
 data.table
