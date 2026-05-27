@@ -345,3 +345,51 @@ Such a `data.frame` will be recognized by statistical processing functions from
 `MSstats` and `MSstatsTMT` packages as a valid input, which will allow them to skip
 checks and transformation necessary to fit data into this format.
 
+# Metabolomics with MZMine
+
+`MZMinetoMSstatsFormat` brings untargeted metabolomics into the MSstats family.
+It takes the wide-format feature-quantification table exported by MZMine (one row
+per feature, one `<sample> Peak area` column per sample) together with a standard
+MSstats annotation and produces an MSstats-ready long-format `data.table`.
+
+An MZMine spectral-library annotation table with `id`, `compound_name`, and
+`score` columns is **required**. The highest-scoring `compound_name` per feature
+is used as `ProteinName`. Features in the quant table with no matching annotation
+row are dropped from the output — there is no synthesized mz_rt fallback,
+because placeholder identifiers inflate the hypothesis count for downstream
+`groupComparison` without biological signal.
+
+These are [MSI Level 2 annotations](https://pmc.ncbi.nlm.nih.gov/articles/PMC5110944/)
+(putative identification via MS/MS spectral matching against a reference library).
+Lower-confidence annotation sources — SIRIUS / MS2Query (Level 3) and CANOPUS
+(Level 4) — are out of scope for this iteration; features without a Level 2
+annotation row are filtered out.
+
+```{r mzmine}
+mzmine_input = data.table::fread(system.file(
+  "tinytest/raw_data/MZMine/mzmine_input.csv",
+  package = "MSstatsConvert"
+))
+mzmine_annotation = data.table::fread(system.file(
+  "tinytest/raw_data/MZMine/annotation.csv",
+  package = "MSstatsConvert"
+))
+mzmine_library = data.table::fread(system.file(
+  "tinytest/raw_data/MZMine/mzmine_annotations.csv",
+  package = "MSstatsConvert"
+))
+
+# ProteinName comes from the matched compound_name; unannotated features are dropped
+mzmine_converted = MZMinetoMSstatsFormat(
+  mzmine_input,
+  annotation = mzmine_annotation,
+  mzmine_annotations = mzmine_library,
+  use_log_file = FALSE
+)
+head(mzmine_converted)
+```
+
+Since metabolomics features do not carry peptide-level identifiers, `PeptideSequence`
+holds the MZMine `row ID` (as a string), and `PrecursorCharge`, `FragmentIon`, and
+`ProductCharge` are all `NA`. `IsotopeLabelType` is set to `"Light"` for every row.
+
