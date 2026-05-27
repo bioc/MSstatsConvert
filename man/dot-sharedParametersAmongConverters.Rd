@@ -12,7 +12,11 @@
 \item{useUniquePeptide}{TRUE (default) removes peptides that are assigned for more than one proteins.
 We assume to use unique peptide for each protein.}
 
-\item{summaryforMultipleRows}{max or sum - when there are multiple measurements for certain feature and certain run, use highest or sum of multiple intensities. Default is max for label-free converters and sum for TMT converters.}
+\item{summaryforMultipleRows}{max or sum - when multiple PSMs identify
+the same feature within a single MS run (duplicate PSMs), use the
+highest (max) or sum of the duplicate intensities. Default is max for
+label-free converters and sum for TMT converters. Note that this parameter
+does NOT control collapsing across fractions of the same biological mixture.}
 
 \item{removeProtein_with1Feature}{TRUE will remove the proteins which have only 1 feature, which is the combination of peptide, precursor charge, fragment and charge. FALSE is default.}
 
