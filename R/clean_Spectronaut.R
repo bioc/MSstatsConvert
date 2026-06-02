@@ -8,7 +8,7 @@
                                 anomalyModelFeatures,
                                 peptideSequenceColumn = "EG.ModifiedSequence",
                                 heavyLabels = NULL) {
-  FFrgLossType = FExcludedFromQuantification = NULL
+  FFrgLossType = FExcludedFromQuantification = Fraction = NULL
 
   spec_input = getInputFile(msstats_object, "input")
   .validateSpectronautInput(spec_input, peptideSequenceColumn)
@@ -29,8 +29,8 @@
 
   cols = c(protein_col, peptide_col, "FGCharge", "FFrgIon",
            f_charge_col, "RFileName", "RCondition", "RReplicate",
-           "EGQvalue", pg_qval_col, interference_col, exclude_col,
-           intensity_col)
+           "RFraction", "EGQvalue", pg_qval_col, interference_col,
+           exclude_col, intensity_col)
   if (calculateAnomalyScores){
     cols = c(cols, anomalyModelFeatures)
   }
@@ -41,10 +41,23 @@
     spec_input,
     c(protein_col, peptide_col, "FGCharge", "FFrgIon",
       f_charge_col, "RFileName", intensity_col,
-      "RCondition", "RReplicate"),
+      "RCondition", "RReplicate", "RFraction"),
     c("ProteinName", "PeptideSequence", "PrecursorCharge", "FragmentIon",
-      "ProductCharge", "Run", "Intensity", "Condition", "BioReplicate"),
+      "ProductCharge", "Run", "Intensity", "Condition", "BioReplicate",
+      "Fraction"),
     skip_absent = TRUE)
+
+  if ("Fraction" %in% colnames(spec_input)) {
+    n_missing_fraction = sum(is.na(spec_input$Fraction))
+    if (n_missing_fraction > 0) {
+      msg = paste("**", n_missing_fraction,
+                  "row(s) have missing (NA) values in the Fraction column.",
+                  "These will be assigned to Fraction 1.")
+      getOption("MSstatsLog")("WARN", msg)
+      getOption("MSstatsMsg")("WARN", msg)
+      spec_input[is.na(Fraction), Fraction := 1]
+    }
+  }
 
   spec_input = .assignSpectronautIsotopeLabelType(
     spec_input, heavyLabels)

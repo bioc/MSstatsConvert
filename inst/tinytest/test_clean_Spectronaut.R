@@ -9,6 +9,29 @@ output = MSstatsConvert:::.cleanRawSpectronaut(msstats_input, intensity = 'FG.MS
                                     calculateAnomalyScores = FALSE, 
                                     anomalyModelFeatures = c())
 expect_true(all(output$Intensity == 100000))
+expect_false("Fraction" %in% colnames(output))
+
+spectronaut_frac = data.table::copy(spectronaut_raw)
+spectronaut_frac$R.Fraction = 2L
+msstats_frac = MSstatsConvert::MSstatsImport(
+    list(input = spectronaut_frac), "MSstats", "Spectronaut")
+output_frac = MSstatsConvert:::.cleanRawSpectronaut(msstats_frac, intensity = 'FG.MS1Quantity',
+                                    calculateAnomalyScores = FALSE,
+                                    anomalyModelFeatures = c())
+expect_true("Fraction" %in% colnames(output_frac))
+expect_false("RFraction" %in% colnames(output_frac))
+expect_true(all(output_frac$Fraction == 2L))
+
+spectronaut_frac_na = data.table::copy(spectronaut_raw)
+spectronaut_frac_na$R.Fraction = NA_integer_
+msstats_frac_na = MSstatsConvert::MSstatsImport(
+    list(input = spectronaut_frac_na), "MSstats", "Spectronaut")
+output_frac_na = MSstatsConvert:::.cleanRawSpectronaut(msstats_frac_na, intensity = 'FG.MS1Quantity',
+                                    calculateAnomalyScores = FALSE,
+                                    anomalyModelFeatures = c())
+expect_true("Fraction" %in% colnames(output_frac_na))
+expect_false(any(is.na(output_frac_na$Fraction)))
+expect_true(all(output_frac_na$Fraction == 1))
 
 expect_error(MSstatsConvert:::.cleanRawSpectronaut(msstats_input, intensity = 'invalid',
                                                    calculateAnomalyScores = FALSE,
