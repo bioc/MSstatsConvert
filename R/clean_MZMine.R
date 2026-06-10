@@ -9,17 +9,25 @@
 #' @param mzmine_annotations `data.frame` of MZMine spectral-library
 #'   annotations with columns `id`, `compound_name`, `score`. Required;
 #'   passing `NULL` raises an error. The highest-scoring `compound_name`
-#'   per feature is used as `ProteinName`, and features in the quant
-#'   table with no matching annotation row are dropped from the output.
-#'   These are MSI Level 2 annotations (putative identification via
-#'   MS/MS spectral matching). See the public `MZMinetoMSstatsFormat`
-#'   docstring for the full scope discussion.
+#'   per feature (MSI Level 2 putative identification via MS/MS spectral
+#'   matching) is used as `ProteinName`.
+#' @param sirius_annotations Optional `data.frame` of SIRIUS
+#'   `structure_identifications.tsv` output, or `NULL`. Only the
+#'   `mappingFeatureId` and `name` columns are read; score columns
+#'   (`ConfidenceScoreExact`, `ConfidenceScoreApproximate`,
+#'   `SiriusScore`) are ignored in this release. When supplied, the
+#'   SIRIUS `name` (MSI Level 3, in-silico structure prediction) fills
+#'   `ProteinName` for features that received no MZMine compound name.
+#'   The schema is validated against SIRIUS 6 output; users on other
+#'   versions can rename columns to match. Pass `NULL` to disable.
 #' @return data.table
 #' @keywords internal
-.cleanRawMZMine <- function(msstats_object, mzmine_annotations) {
+.cleanRawMZMine <- function(msstats_object, mzmine_annotations,
+                            sirius_annotations = NULL) {
     ProteinName = PeptideSequence = Intensity = Run = NULL
     PrecursorCharge = FragmentIon = ProductCharge = NULL
     id = score = compound_name = i.compound_name = NULL
+    rowmz = rowretentiontime = mappingFeatureId = name = NULL
 
     mz_input = getInputFile(msstats_object, "input")
     mz_input = data.table::as.data.table(mz_input)
@@ -32,10 +40,13 @@
              "columns named '<run> Peak area' (e.g. 'sampleA.mzML Peak area').")
     }
     id_col <- "rowID"
-    required_meta <- id_col
+    mz_col <- "rowmz"
+    rt_col <- "rowretentiontime"
+    required_meta <- c(id_col, mz_col, rt_col)
     missing_meta <- setdiff(required_meta, colnames(mz_input))
     if (length(missing_meta) > 0) {
-        stop("Missing required MZMine metadata column (expected 'row ID'). ",
+        stop("Missing required MZMine metadata column(s) ",
+             "(expected 'row ID', 'row m/z', 'row retention time'). ",
              "After standardization, looked for: ",
              paste(missing_meta, collapse = ", "), ".")
     }
@@ -57,20 +68,47 @@
     }
     data.table::setorder(feature_to_compound, id, -score)
     feature_to_compound <- unique(feature_to_compound, by = "id")
-    # Inner-join filter: drop quant rows with no matching annotation.
+    # MZMine compound name fill (left-join, no drop).
     mz_input[
         feature_to_compound,
         ProteinName := i.compound_name,
         on = setNames("id", id_col)
     ]
-    mz_input <- mz_input[!is.na(ProteinName)]
+    n_mzmine <- sum(!is.na(mz_input$ProteinName))
 
-    retained_ids <- feature_to_compound$id
-    retained_msg <- paste0("** MZMine: retained ", length(retained_ids),
-                           " feature(s) after annotation join: ",
-                           paste(retained_ids, collapse = ", "))
-    getOption("MSstatsLog")("INFO", retained_msg)
-    getOption("MSstatsMsg")("INFO", retained_msg)
+    # SIRIUS name fills features still NA after the MZMine compound fill.
+    n_sirius <- 0L
+    if (!is.null(sirius_annotations)) {
+        sirius_dt <- data.table::copy(data.table::as.data.table(sirius_annotations))
+        drop_cols <- setdiff(colnames(sirius_dt), c("mappingFeatureId", "name"))
+        for (col in drop_cols) data.table::set(sirius_dt, j = col, value = NULL)
+        sirius_dt[, name := ifelse(is.na(name) | name == "",
+                                   NA_character_, as.character(name))]
+        sirius_dt[, mappingFeatureId := as.character(mappingFeatureId)]
+        data.table::setorder(sirius_dt, mappingFeatureId, name)
+        # unique() keeps the dedup 1:1 for the join and handles
+        # multiple structure candidates per feature.
+        sirius_dt <- unique(sirius_dt, by = "mappingFeatureId")
+        mz_input[is.na(ProteinName), ProteinName :=
+            sirius_dt[.(as.character(get(id_col))), on = "mappingFeatureId", name]]
+        n_sirius <- sum(!is.na(mz_input$ProteinName)) - n_mzmine
+    }
+
+    # m/z-RT fallback for features still NA.
+    na_mask <- is.na(mz_input$ProteinName)
+    n_fallback <- sum(na_mask)
+    if (n_fallback > 0) {
+        mz_input[na_mask, ProteinName := paste0(
+            round(get(mz_col), 4), "_", round(get(rt_col), 2))]
+    }
+
+    assignment_msg <- paste0(
+        "** MZMine ProteinName assignment: ",
+        "MZMine compound: ", n_mzmine, " feature(s); ",
+        "SIRIUS name: ", n_sirius, " feature(s); ",
+        "m/z-RT fallback: ", n_fallback, " feature(s).")
+    getOption("MSstatsLog")("INFO", assignment_msg)
+    getOption("MSstatsMsg")("INFO", assignment_msg)
 
     mz_input[, PeptideSequence := as.character(get(id_col))]
 
