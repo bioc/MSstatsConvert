@@ -56,7 +56,7 @@ output <- MSstatsConvert:::.cleanRawDIANN(input, MBR = FALSE, pg_qvalue_cutoff =
 expect_qvalue_cutoff(output, "GlobalPGQValue", 0.0002)
 
 # Test .assignDIANNIsotopeLabelType ---------------------------
-# Channel path: Channel column is mapped to IsotopeLabelType, then dropped
+
 dt_channel = data.table::data.table(
     PeptideSequence = c("PEPTIDEK", "PEPTIDEK", "PEPTIDEK"),
     Channel = c("H", "L", "other")
@@ -67,7 +67,6 @@ result_channel = MSstatsConvert:::.assignDIANNIsotopeLabelType(
 expect_equal(result_channel$IsotopeLabelType, c("H", "L", NA_character_))
 expect_false("Channel" %in% colnames(result_channel))
 
-# NULL path: labeledAminoAcids = NULL returns input unchanged (no IsotopeLabelType added)
 dt_null = data.table::data.table(
     PeptideSequence = c("PEPTIDEK(SILAC-K-H)", "PEPTIDEK(SILAC-K-L)")
 )
@@ -76,3 +75,27 @@ result_null = MSstatsConvert:::.assignDIANNIsotopeLabelType(
 )
 expect_false("IsotopeLabelType" %in% colnames(result_null))
 expect_equal(nrow(result_null), 2L)
+
+dt_label = data.table::data.table(
+    PeptideSequence = c("PEPTIDEK(SILAC-K-H)", "PEPTIDEK(SILAC-K-L)",
+                        "PEPTIDEK(label-K-H)", "PEPTIDEK(label-K-L)",
+                        "PEPTIDEK")
+)
+result_label = MSstatsConvert:::.assignDIANNIsotopeLabelType(
+    dt_label, labeledAminoAcids = c("K"), has_channel = FALSE
+)
+expect_equal(result_label$IsotopeLabelType, c("H", "L", "H", "L", NA_character_))
+expect_equal(unique(result_label$PeptideSequence), "PEPTIDEK")
+
+dt_multi_aa = data.table::data.table(
+    PeptideSequence = c("PEPTIDEK(SILAC-K-H)", "PEPTIDER(SILAC-R-H)",
+                        "PEPTIDEK(SILAC-K-L)", "PEPTIDER(SILAC-R-L)",
+                        "PEPTIDEAC")
+)
+result_multi_aa = MSstatsConvert:::.assignDIANNIsotopeLabelType(
+    dt_multi_aa, labeledAminoAcids = c("K", "R"), has_channel = FALSE
+)
+expect_equal(result_multi_aa$IsotopeLabelType,
+             c("H", "H", "L", "L", NA_character_))
+expect_equal(sort(unique(result_multi_aa$PeptideSequence)),
+             c("PEPTIDEAC", "PEPTIDEK", "PEPTIDER"))

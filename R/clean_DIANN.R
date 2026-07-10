@@ -231,12 +231,17 @@
 #' \strong{not} used to validate or filter \code{ModifiedSequence}.
 #'
 #' \strong{ModifiedSequence-parsing path} (\code{has_channel = FALSE}):
-#' \code{PeptideSequence} (the retained \code{ModifiedSequence}) is matched
-#' against SILAC suffixes of the form \code{(SILAC-<AA>-H)} or
-#' \code{(SILAC-<AA>-L)}, where \code{<AA>} is any code in
-#' \code{labeledAminoAcids}.  Sequences carrying neither suffix receive
-#' \code{IsotopeLabelType = NA}.  The SILAC suffix is stripped from
-#' \code{PeptideSequence} after classification.
+#' \code{PeptideSequence} (the retained \code{ModifiedSequence}) is scanned
+#' for isotope-labeled amino acids, which appear in parentheses immediately
+#' after the labeled residue, in the form \code{(<label>-<aminoAcid>-H)} for
+#' the heavy label or \code{(<label>-<aminoAcid>-L)} for the light label.
+#' For example, \code{K(label-K-H)} marks a heavy-labeled lysine (\code{K}).
+#' Here \code{<aminoAcid>} is one of the single-letter codes in
+#' \code{labeledAminoAcids}, and \code{<label>} is the label name (e.g.
+#' \code{SILAC} or \code{label}). Sequences with no such parenthetical
+#' tags are assigned \code{IsotopeLabelType = NA}. Once classified, the
+#' parenthetical annotation is stripped out of \code{PeptideSequence},
+#' leaving the plain amino acid sequence.
 #'
 #' @param dn_input \code{data.table} after column renaming.
 #' @param labeledAminoAcids Character vector of single-letter amino acid codes
@@ -265,9 +270,9 @@
         dn_input[, Channel := NULL]
     } else {
         aa_pattern <- paste0(labeledAminoAcids, collapse = "|")
-        heavy_regex <- paste0("\\(SILAC-(?:", aa_pattern, ")-H\\)")
-        light_regex <- paste0("\\(SILAC-(?:", aa_pattern, ")-L\\)")
-        strip_regex <- paste0("\\(SILAC-(?:", aa_pattern, ")-[HL]\\)")
+        heavy_regex <- paste0("\\([^-]+-(?:", aa_pattern, ")-H\\)")
+        light_regex <- paste0("\\([^-]+-(?:", aa_pattern, ")-L\\)")
+        strip_regex <- paste0("\\([^-]+-(?:", aa_pattern, ")-[HL]\\)")
 
         dn_input <- .classifyIsotopeLabelType(dn_input, heavy_regex, light_regex)
         dn_input[, PeptideSequence := gsub(strip_regex, "", PeptideSequence, perl = TRUE)]
@@ -276,7 +281,9 @@
     if (all(is.na(dn_input[["IsotopeLabelType"]]))) {
         warning("labeledAminoAcids was provided but no rows were classified as H or L. ",
                 "Check that the input contains either a Channel column with H/L values ",
-                "or ModifiedSequence entries with (SILAC-<AA>-H)/(SILAC-<AA>-L) suffixes.")
+                "or ModifiedSequence entries with isotope-labeled amino acids", 
+                "which appear in parentheses immediately after the labeled residue", 
+                "e.g. (SILAC-K-H).")
     }
 
     dn_input
