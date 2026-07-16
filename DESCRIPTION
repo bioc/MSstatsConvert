@@ -19,7 +19,6 @@ Depends:
     R (>= 4.0)
 Imports: 
     data.table,
-    log4r,
     methods,
     checkmate,
     utils,
