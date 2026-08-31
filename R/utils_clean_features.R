@@ -309,22 +309,63 @@
 }
 
 
+#' Count regex matches per element, scoring no-match and \code{NA} as 0.
+#' @param x Character vector to search.
+#' @param pattern Perl-compatible regex.
+#' @return Integer vector of match counts, the same length as \code{x}.
+#' @keywords internal
+#' @noRd
+.countRegexMatches = function(x, pattern) {
+    lengths(regmatches(x, gregexpr(pattern, x, perl = TRUE)))
+}
+
+
+#' Drop peptides carrying more than one labelable residue.
+#'
+#' Such peptides can be partially labeled, which the two-state turnover model
+#' cannot represent, so heavy and light rows are dropped together to keep the
+#' light/heavy ratio unbiased.  The number of peptides removed is logged, since
+#' the exclusion is otherwise invisible to the user.
+#'
+#' @param dt \code{data.table} with a \code{PeptideSequence} column.
+#' @param residue_regex Perl-compatible regex matching one labelable residue.
+#' @param strip_regex Perl-compatible regex matching label and modification
+#'   annotations, removed before counting so that residue letters inside an
+#'   annotation are not counted.
+#' @return \code{dt} with multiply labeled rows removed.
+#' @keywords internal
+#' @noRd
+.filterMultiplyLabeledPeptides = function(dt, residue_regex, strip_regex) {
+    stripped = gsub(strip_regex, "", dt[["PeptideSequence"]], perl = TRUE)
+    n_labelable = .countRegexMatches(stripped, residue_regex)
+    is_multiply_labeled = n_labelable >= 2L
+
+    if (any(is_multiply_labeled)) {
+        # Count distinct peptides on the stripped sequence, so that the heavy
+        # and light forms of one peptide are not reported as two.
+        msg = paste("**", data.table::uniqueN(stripped[is_multiply_labeled]),
+                    "peptide(s) with more than one labelable residue were",
+                    paste0("removed (", sum(is_multiply_labeled), " row(s))."),
+                    "Turnover analysis is currently limited to peptides with",
+                    "exactly one labelable residue.")
+        getOption("MSstatsLog")("INFO", msg)
+        getOption("MSstatsMsg")("INFO", msg)
+    }
+
+    dt[!is_multiply_labeled, ]
+}
+
+
 #' Classify IsotopeLabelType from peptide sequence patterns.
 #'
-#' Shared core logic for protein turnover workflows in both Spectronaut and
-#' DIANN converters.  Each peptide is classified as heavy (\code{"H"}), light
-#' (\code{"L"}), or unlabeled (\code{NA}) by matching regex patterns against
-#' the \code{PeptideSequence} column.
+#' Shared by the Spectronaut and DIANN turnover workflows.  Each peptide is
+#' classified as heavy (\code{"H"}), light (\code{"L"}), or unlabeled
+#' (\code{NA}) by matching regexes against \code{PeptideSequence}.
 #'
-#' Two modes are supported:
-#' \describe{
-#'   \item{Spectronaut mode}{Pass \code{labeled_aa_regex}.  The sequence is
-#'     first stripped of all bracket modifications; light is inferred when the
-#'     bare labeled amino acid is present but the heavy bracket form is absent.}
-#'   \item{DIANN mode}{Pass \code{light_regex}.  Both heavy and light patterns
-#'     are matched directly against the modified sequence; absence of either
-#'     yields \code{NA}.}
-#' }
+#' Spectronaut mode (\code{labeled_aa_regex}) strips bracket modifications
+#' first, then infers light from a bare labelable residue with no heavy tag.
+#' DIANN mode (\code{light_regex}) matches heavy and light patterns directly
+#' against the modified sequence.
 #'
 #' @param dt \code{data.table} with a \code{PeptideSequence} column.
 #' @param heavy_regex Perl-compatible regex matching heavy-labeled sequences.

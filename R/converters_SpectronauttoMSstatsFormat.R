@@ -12,17 +12,23 @@
 #' @param peptideSequenceColumn Name of the Spectronaut column that contains the
 #' peptide sequence.  Defaults to \code{"EG.ModifiedSequence"}. The value is 
 #' standardized internally (dots and spaces removed) before column lookup.
-#' @param heavyLabels Character list identifying the heavy isotope labels as it
-#'   appears inside square brackets in the peptide sequence column, e.g.
-#'   \code{c("Lys6")} matches peptides containing \code{[Lys6]}.  
-#'   \code{c("Lys6", "Arg10")} matches peptides containing either \code{[Lys6]} or \code{[Arg10]}.
-#'   Supports any novel label name reported by Spectronaut (e.g. \code{"Leu6"},
-#'   \code{"Phe10"}).  When provided, peptides are
-#'   classified as heavy (\code{IsotopeLabelType = "H"}), light
-#'   (\code{IsotopeLabelType = "L"}), or unlabeled
-#'   (\code{IsotopeLabelType = NA}) based on its labeled sequence.  When
-#'   \code{NULL} (default) all peptides receive \code{IsotopeLabelType = "L"}.
-#'   Useful for protein turnover experiments.
+#' @param heavyLabels Character vector naming each labeled residue and its
+#'   heavy label as they appear in the peptide sequence column: the
+#'   single-letter amino acid code, then the label in square brackets.  For
+#'   example \code{"K[Lys6]"}, or \code{c("K[Lys6]", "R[Arg10]")} for a
+#'   double-label experiment.  Any label name Spectronaut reports is accepted.
+#'   The residue letter is required, because it is what tells MSstats which
+#'   peptides could have carried a label.
+#'
+#'   Peptides carrying the label are marked heavy
+#'   (\code{IsotopeLabelType = "H"}), those that could carry it but do not are
+#'   light (\code{"L"}), and those with no labelable residue are \code{NA}.  A
+#'   peptide with two or more labelable residues (counted across all labels
+#'   supplied) may be only partially labeled, which the two-state turnover
+#'   model cannot represent, so it is dropped and the number removed is
+#'   reported.
+#'
+#'   Defaults to \code{NULL}: turnover mode off, every peptide marked light.
 #' @param excludedFromQuantificationFilter Remove rows with F.ExcludedFromQuantification=TRUE Default is TRUE.
 #' @param filter_with_Qvalue FALSE(default) will not perform any filtering. TRUE will filter out the intensities that have greater than qvalue_cutoff in EG.Qvalue column. Those intensities will be replaced with zero and will be considered as censored missing values for imputation purpose.
 #' @param qvalue_cutoff Cutoff for EG.Qvalue. default is 0.01.

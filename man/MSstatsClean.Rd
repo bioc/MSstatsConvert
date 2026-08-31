@@ -137,17 +137,23 @@ For protein turnover workflows the recommended default is
 peptide sequence.  Defaults to \code{"EG.ModifiedSequence"}. The value is
 standardized internally (dots and spaces removed) before column lookup.}
 
-\item{heavyLabels}{Character list identifying the heavy isotope labels as it
-appears inside square brackets in the peptide sequence column, e.g.
-\code{c("Lys6")} matches peptides containing \code{[Lys6]}.
-\code{c("Lys6", "Arg10")} matches peptides containing either \code{[Lys6]} or \code{[Arg10]}.
-Supports any novel label name reported by Spectronaut (e.g. \code{"Leu6"},
-\code{"Phe10"}).  When provided, peptides are
-classified as heavy (\code{IsotopeLabelType = "H"}), light
-(\code{IsotopeLabelType = "L"}), or unlabeled
-(\code{IsotopeLabelType = NA}) based on its labeled sequence.  When
-\code{NULL} (default) all peptides receive \code{IsotopeLabelType = "L"}.
-Useful for protein turnover experiments.}
+\item{heavyLabels}{Character vector naming each labeled residue and its
+heavy label as they appear in the peptide sequence column: the
+single-letter amino acid code, then the label in square brackets.  For
+example \code{"K[Lys6]"}, or \code{c("K[Lys6]", "R[Arg10]")} for a
+double-label experiment.  Any label name Spectronaut reports is accepted.
+The residue letter is required, because it is what tells MSstats which
+peptides could have carried a label.
+
+Peptides carrying the label are marked heavy
+(\code{IsotopeLabelType = "H"}), those that could carry it but do not are
+light (\code{"L"}), and those with no labelable residue are \code{NA}.  A
+peptide with two or more labelable residues (counted across all labels
+supplied) may be only partially labeled, which the two-state turnover
+model cannot represent, so it is dropped and the number removed is
+reported.
+
+Defaults to \code{NULL}: turnover mode off, every peptide marked light.}
 
 \item{peptide_id_col}{character name of a column that identifies peptides}
 
@@ -175,37 +181,28 @@ column, i.e. the global q-value for the protein group.  If MBR is true, the
 qvalue cutoff for the Lib.PG.Q.Value column, i.e. the protein group q-value for
 the library created after the first MBR pass. Default is 0.01.}
 
-\item{labeledAminoAcids}{Character vector of single-letter amino acid codes
-that carry the SILAC label in protein turnover experiments, e.g.
-\code{c("K")} or \code{c("K", "R")}.  Supplying this vector opts in to
-protein-turnover mode; the exact amino acids determine behaviour only in the
-\code{ModifiedSequence}-parsing path described below.
+\item{labeledAminoAcids}{Character vector of single-letter codes for the
+amino acids carrying the SILAC label, e.g. \code{c("K")} or
+\code{c("K", "R")}.  Supplying it turns on protein-turnover mode.  Defaults
+to \code{NULL}, which marks every peptide
+\code{IsotopeLabelType = "Light"}.  How the label is read depends on the
+export:
 
-\strong{Channel-based path} (DIA-NN 2.x exports that include a
-\code{Channel} column): when \code{labeledAminoAcids} is non-\code{NULL}
-\emph{and} the input contains a \code{Channel} column, \code{Channel} values
-are mapped directly to \code{IsotopeLabelType} (\code{"H"} → \code{"H"},
-\code{"L"} → \code{"L"}, anything else → \code{NA}).  The amino acid codes
-in \code{labeledAminoAcids} are \strong{not} used to validate or filter
-\code{ModifiedSequence} in this path.
+\strong{DIA-NN 2.x, with a \code{Channel} column.}  \code{Channel} gives the
+label directly: \code{"H"} and \code{"L"} pass through, anything else
+becomes \code{NA}.  The amino acid codes only switch the mode on here;
+sequences are not inspected.
 
-\strong{ModifiedSequence-parsing path} (DIA-NN 1.x exports without a
-\code{Channel} column): when \code{labeledAminoAcids} is non-\code{NULL}
-and no \code{Channel} column is present, each \code{ModifiedSequence} is
-scanned for isotope-labeled amino acids, which appear in parentheses
-immediately after the labeled residue,
-in the form \code{(<label>-<aminoAcid>-H)} for
-the heavy label or \code{(<label>-<aminoAcid>-L)} for the light label.
-For example, \code{K(label-K-H)} marks a heavy-labeled lysine (\code{K}).
-Here \code{<aminoAcid>} is one of the single-letter codes in
-\code{labeledAminoAcids}, and \code{<label>} is the label name (e.g.
-\code{SILAC} or \code{label}). Sequences with no such parenthetical
-tags are assigned \code{IsotopeLabelType = NA}. Once classified, the
-parenthetical annotation is stripped out of \code{PeptideSequence},
-leaving the plain amino acid sequence.
-
-When \code{NULL} (default), protein-turnover mode is disabled and all
-peptides receive \code{IsotopeLabelType = "Light"}.}
+\strong{DIA-NN 1.x, without a \code{Channel} column.}  The label is read
+from \code{ModifiedSequence}, where it follows the labeled residue in
+parentheses as \code{(<label>-<aminoAcid>-H)} or
+\code{(<label>-<aminoAcid>-L)}; for example \code{K(label-K-H)} is a
+heavy-labeled lysine.  \code{<label>} is the label name DIA-NN reported
+(e.g. \code{SILAC}).  Untagged sequences become \code{NA}, and the tags are
+stripped from \code{PeptideSequence} afterwards.  A peptide with two or more
+labelable residues (counted across all of \code{labeledAminoAcids}) may be
+only partially labeled, which the two-state turnover model cannot represent,
+so it is dropped and the number removed is reported.}
 
 \item{mzmine_annotations}{\code{data.frame} of MZMine spectral-library
 annotations with columns \code{id}, \code{compound_name}, \code{score}. Required;

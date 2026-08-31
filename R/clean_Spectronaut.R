@@ -171,27 +171,23 @@
 }
 
 
-#' Assign IsotopeLabelType based on heavy label detection.
+#' Assign IsotopeLabelType from Spectronaut heavy label tags.
 #'
-#' When \code{heavyLabel} is provided, each row is classified as heavy
-#' (\code{"H"}), light (\code{"L"}), or unlabeled (\code{NA}) by inspecting
-#' the labeled sequence column for the presence of the label tag.
+#' In Spectronaut turnover reports a labeled residue carries its label in
+#' brackets, e.g. \code{_PEPTIDEK[Lys6]_}.  Each \code{heavyLabels} entry pairs
+#' the residue with the label (\code{"K[Lys6]"}), so the bare residue marks a
+#' peptide that could have been labeled: with \code{"K[Lys6]"},
+#' \code{PEPTIDEK[Lys6]} is heavy, \code{PEPTIDEK} is light, and
+#' \code{PEPTIDEZ} is \code{NA}.  Peptides with two or more labelable residues
+#' (counted across all labels) are dropped, since partial labeling breaks the
+#' two-state turnover model.
 #'
-#' In Spectronaut protein turnover reports, heavy peptides appear in
-#' \code{FG.LabeledSequence} with a bracketed modification, e.g.
-#' \code{_PEPTIDEK[Lys6]_}.  Any sequence that contains
-#' \code{[<heavyLabel>]} is classified as heavy; all others are light.
-#' Sequences that do not have amino acids that can carry the label
-#' are classified as \code{NA}.  For example, if \code{heavyLabels} is 
-#' \code{"Lys6"}, then \code{PEPTIDEZ} is classified as NA since it
-#' has no lysine residues that could be labeled.
-#' When \code{heavyLabel} is \code{NULL} the column is left untouched so
-#' that the downstream \code{columns_to_fill} default of \code{"L"} applies,
-#' preserving backwards compatibility.
+#' With \code{NULL} the column is left untouched so the downstream
+#' \code{columns_to_fill} default of \code{"L"} applies.
 #'
 #' @param spec_input `data.table` after column renaming.
-#' @param heavyLabels Character scalar heavy label name (e.g. \code{"Lys6"}),
-#'   or \code{NULL}.
+#' @param heavyLabels Character vector of \code{<residue>[<label>]} pairs
+#'   (e.g. \code{"K[Lys6]"}), or \code{NULL}.
 #' @return `data.table` with \code{IsotopeLabelType} column added or updated.
 #' @keywords internal
 #' @noRd
@@ -208,6 +204,8 @@
         collapse = "|"
     )
 
+    spec_input = .filterMultiplyLabeledPeptides(spec_input, labeled_aa_regex,
+                                                "\\[[^\\]]*\\]")
     spec_input = .classifyIsotopeLabelType(spec_input, heavy_regex,
                                             labeled_aa_regex = labeled_aa_regex)
 
